@@ -54,5 +54,8 @@ for (i in semanticList)
 
 }
 #print(parsedList)
-print(names)
-print(popularityScores)
+#print(names)
+#print(popularityScores)
+parsedList<-unique(names)
+#print(unique(names))
+print(parsedList)
