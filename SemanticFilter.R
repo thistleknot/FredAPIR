@@ -63,7 +63,7 @@ data<-c()
 a=1
 for (i in parsedList)
 {
-  test <- fred$series.observations(series_id = parsedList[a])
+  test <- fred$series.observations(series_id = parsedList[a], observation_start = "2000-01-01", observation_end = "2018-03-01")
 
   test %>>%
     select(
