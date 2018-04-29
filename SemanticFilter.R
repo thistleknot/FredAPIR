@@ -19,7 +19,7 @@ for (i in semanticList)
   semantic<-fred$series.search(semanticList[x])
 
   #loop through popularity scores
-  print(semanticList[x])
+  #print(semanticList[x])
   for (y in semantic$popularity)
   {
     #if specific score is greater than 77, capture
@@ -53,9 +53,33 @@ for (i in semanticList)
   x=x+1
 
 }
-#print(parsedList)
-#print(names)
-#print(popularityScores)
+
 parsedList<-unique(names)
-#print(unique(names))
+
 print(parsedList)
+
+data<-c()
+
+a=1
+for (i in parsedList)
+{
+  test <- fred$series.observations(series_id = parsedList[a])
+
+  test %>>%
+    select(
+      date,
+      value
+    ) %>>%
+    mutate(
+      date = as.Date(date),
+      value = as.numeric(value)
+    ) ->
+    dt
+
+  require(ggplot2)
+  #print(dt)
+  write.csv(dt, file = parsedList[a])
+  #qplot(data = dt, x = date, y = value, geom = 'line')
+
+  a=a+1
+}
