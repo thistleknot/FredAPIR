@@ -26,6 +26,7 @@ for (i in semanticList)
 
     #as.numeric(as.character(semantic$popularity[count]))
 
+    #https://stackoverflow.com/questions/2288485/how-to-convert-a-data-frame-column-to-numeric-type
     #if((semantic$popularity[count])>77)
     if((as.numeric(as.character(semantic$popularity[count])))>semanticScore)
     {
