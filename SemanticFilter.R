@@ -153,6 +153,7 @@ process_data = function(d, value_name) {
 data_list_processed = list()
 for (i in seq_along(data_list)) {
   data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
+  print(data_list_processed[[1]])
   #print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
         
   #combined_data = Reduce(merge, data_list_processed)
@@ -163,10 +164,22 @@ for (i in seq_along(data_list)) {
 
 # merge the data
 #combined_data = Reduce(merge, data_list_processed)
+
 combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
+
+#
+library(zoo)
+
+m <- combined_data
+na.locf(na.approx(m))
+## "first observation carry backwards" too:
+na.locf(na.locf(na.approx(m)), fromLast = TRUE)
+
+print(m)
+#print(Cz_approx)
 
 #print(data_list_processed)
 
 #print(combined_data)
 
-write.csv(combined_data, file = "output.csv")
+write.csv(m, file = "output.csv")

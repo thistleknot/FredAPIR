@@ -1,6 +1,7 @@
 #https://www.rstudio.com/products/rpackages/devtools/
 install.packages("devtools")
 install.packages("ggplot2")
+install.packages("zoo")
 
 #https://stackoverflow.com/questions/1249548/side-by-side-plots-with-ggplot2
 install.packages("gridExtra")
