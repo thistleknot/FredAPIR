@@ -121,7 +121,7 @@ for (i in parsedList)
 
 #https://stackoverflow.com/questions/50118593/r-join-all-datasets-by-date/50139902#50139902
 # first download all the data    
-#by Gregor
+#by Gregor 2018-05-2
 data_list = lapply(parsedList, function(a)
   fred$series.observations(
     series_id = a,
@@ -154,8 +154,6 @@ data_list_processed = list()
 for (i in seq_along(data_list)) {
   data_list_processed[[i]] = process_data(data_list[[i]], value_name = paste0("value", i))
   print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
-  
-  
         
   #combined_data = Reduce(merge, data_list_processed)
   
@@ -164,7 +162,8 @@ for (i in seq_along(data_list)) {
 }
 
 # merge the data
-combined_data = Reduce(merge, data_list_processed)
+#combined_data = Reduce(merge, data_list_processed)
+Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
 
 #print(data_list_processed)
 
