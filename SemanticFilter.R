@@ -152,7 +152,7 @@ process_data = function(d, value_name) {
 # process the data
 data_list_processed = list()
 for (i in seq_along(data_list)) {
-  data_list_processed[[i]] = process_data(data_list[[i]], value_name = paste0("value", i))
+  data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
   print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
         
   #combined_data = Reduce(merge, data_list_processed)
