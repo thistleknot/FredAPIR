@@ -153,7 +153,7 @@ process_data = function(d, value_name) {
 data_list_processed = list()
 for (i in seq_along(data_list)) {
   data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
-  print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
+  #print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
         
   #combined_data = Reduce(merge, data_list_processed)
   
@@ -163,8 +163,10 @@ for (i in seq_along(data_list)) {
 
 # merge the data
 #combined_data = Reduce(merge, data_list_processed)
-Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
+combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
 
 #print(data_list_processed)
 
-print(combined_data)
+#print(combined_data)
+
+write.csv(combined_data, file = "output.csv")
