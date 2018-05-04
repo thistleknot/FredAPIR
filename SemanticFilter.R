@@ -144,19 +144,25 @@ print(df3)
 
 #https://stackoverflow.com/a/50173660/1731972
 
-#combined_data_z <- read.csv(file="http://thistleknot.sytes.net/wordpress/wp-content/uploads/2018/04/output_NoNA.csv")
-combined_data_z <- df3
+#file begins with numeric iterations
 
-#print(combined_data_z)
+write.csv(df3, file = "testing.csv")
 
-test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-2, nrow = nrow(combined_data_z))
-for (i in 3:ncol(combined_data_z))
+combined_data_z <- read.csv(file="testing.csv")
+
+#combined_data_z <- df3
+combined_data_z[,1] <- NULL
+print(combined_data_z)
+
+test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-1, nrow = nrow(combined_data_z))
+head(test1_z_approx)
+for (i in 2:ncol(combined_data_z))
 {
   
   dates <- combined_data_z[,1]
   test1 <- combined_data_z[,i]
   test1_z <- zoo(test1)
-  test1_z_approx[,i-2] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
+  test1_z_approx[,i-1] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
   
   
 }
