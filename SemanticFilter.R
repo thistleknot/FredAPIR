@@ -83,15 +83,6 @@ data_list = lapply(parsedList, function(a)
   )
 )
 
-#use a column join function to inject a layer of rows for names?
-a=1
-for (i in parsedList)
-{
-  #print(parsedList[a])
-  #print(data_list[a])
-  a=a+1
-}
-
 # define function to process the data
 # we plan on re-naming the "value" column so each one is distinct
 process_data = function(d, value_name) {
@@ -114,13 +105,13 @@ for (i in seq_along(data_list)) {
 #merge data by date
 
 #combined_data = Reduce(merge, data_list_processed)
-
 combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
 
 #aggregate/reduce data from daily (due to join by date operation) to weekly
 #https://stackoverflow.com/questions/10085806/extracting-specific-columns-from-a-data-frame
 
 df3 <- c()
+
 a=2
 for (i in parsedList)
 {
@@ -147,24 +138,79 @@ for (i in parsedList)
     a=a+1
   }
   
-  
 }
 
+#https://stackoverflow.com/a/50173660/1731972
+library(zoo)
+#this .csv is my weekly aggregated df3
+combined_data_z <- read.csv(file="http://thistleknot.sytes.net/wordpress/wp-content/uploads/2018/04/output_NoNA.csv")
 
-#,1 = date
-#,2 = 1st dataset, trying to get a loop using a
-a=2
-for(i in parsedList)
+
+test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-2, nrow = nrow(combined_data_z))
+for (i in 3:ncol(combined_data_z))
 {
-  dates <- c(df3[,1])
-  test1 <- c(df3[,2])
-  a=a+1
+  
+  dates <- combined_data_z[,1]
+  test1 <- combined_data_z[,i]
+  test1_z <- zoo(test1)
+  test1_z_approx[,i-2] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
   
 }
+#right now, list exports with incorrect headers, includes an additional row column, and no date column.  Also extends the beginning date range to beginning of year.  
+#I fix all this post export.
+write.csv(test1_z_approx, file = "output_test.csv")
 
-dates <- df3[,1]; 
-test1 <- df3[,2];
-test1_z <- zoo(test1);
+# to to break apart data into 2 lists to run through interpolation, then to to re-integrate together per column.
+# ,1 = date
+# ,2 = 1st dataset, trying to get a loop using a
+
+df4 <- c()
+
+a=2
+for (i in parsedList)
+{
+  #print(dates)
+  
+  #df <- subset(combined_data, select = c(1, a))
+
+    #must start with 2
+  #a=2
+  df4 <- subset(combined_data, select = c(1, a))
+  
+  test1=df4[,2]
+  
+  dates <- c(df4[,1])
+  
+  
+  int(test1[,1])
+  print(dates[1])
+  
+  
+  #index(dates)
+  #index(test1)
+  #checking against error x and index must have the same length
+  if((lengths(test1)-lengths(dates))!=0)
+  {
+    print(lengths(test1[,1])-lengths(dates[1]))  
+  }
+  
+  test1_z_approx <- na.fill(na.approx(test1[,1], x=dates[1], rule=2), "extend")
+
+  #print(dates)
+  
+  
+  
+  #print(test1)
+  
+  #test1 <- df4[,1];
+  #test1_z <- zoo(test1);
+  
+  a=a+1
+}
+
+
+
+
 test1_z_approx <- na.fill(na.approx(test1, x=dates, rule=2), "extend")
 #print(test1_z_approx)
 
