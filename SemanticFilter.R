@@ -143,7 +143,8 @@ for (i in parsedList)
 #https://stackoverflow.com/a/50173660/1731972
 library(zoo)
 #this .csv is my weekly aggregated df3
-combined_data_z <- read.csv(file="http://thistleknot.sytes.net/wordpress/wp-content/uploads/2018/04/output_NoNA.csv")
+combined_data_z <- df3
+#<- read.csv(file="http://thistleknot.sytes.net/wordpress/wp-content/uploads/2018/04/output_NoNA.csv")
 
 
 test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-2, nrow = nrow(combined_data_z))
@@ -159,60 +160,3 @@ for (i in 3:ncol(combined_data_z))
 #right now, list exports with incorrect headers, includes an additional row column, and no date column.  Also extends the beginning date range to beginning of year.  
 #I fix all this post export.
 write.csv(test1_z_approx, file = "output_test.csv")
-
-# to to break apart data into 2 lists to run through interpolation, then to to re-integrate together per column.
-# ,1 = date
-# ,2 = 1st dataset, trying to get a loop using a
-
-df4 <- c()
-
-a=2
-for (i in parsedList)
-{
-  #print(dates)
-  
-  #df <- subset(combined_data, select = c(1, a))
-
-    #must start with 2
-  #a=2
-  df4 <- subset(combined_data, select = c(1, a))
-  
-  test1=df4[,2]
-  
-  dates <- c(df4[,1])
-  
-  
-  int(test1[,1])
-  print(dates[1])
-  
-  
-  #index(dates)
-  #index(test1)
-  #checking against error x and index must have the same length
-  if((lengths(test1)-lengths(dates))!=0)
-  {
-    print(lengths(test1[,1])-lengths(dates[1]))  
-  }
-  
-  test1_z_approx <- na.fill(na.approx(test1[,1], x=dates[1], rule=2), "extend")
-
-  #print(dates)
-  
-  
-  
-  #print(test1)
-  
-  #test1 <- df4[,1];
-  #test1_z <- zoo(test1);
-  
-  a=a+1
-}
-
-
-
-
-test1_z_approx <- na.fill(na.approx(test1, x=dates, rule=2), "extend")
-#print(test1_z_approx)
-
-write.csv(df3, file = "output.csv")
-
