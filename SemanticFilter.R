@@ -71,11 +71,11 @@ for (i in parsedList)
 {
   test <- fred$series.observations(series_id = parsedList[a], observation_start = "2000-01-01", observation_end = "2018-03-01")
 
-  test %>>%
+  test %>%
     select(
       date,
       value
-    ) %>>%
+    ) %>%
     mutate(
       date = as.Date(date),
       value = as.numeric(value)
@@ -104,11 +104,11 @@ for (i in parsedList)
   {
     test <- fred$series.observations(series_id = parsedList[a], observation_start = "2000-01-01", observation_end = "2018-03-01")
 
-    test %>>%
+    test %>%
       select(
         date,
         value
-      ) %>>%
+      ) %>%
       mutate(
         date = as.Date(date),
         value = as.numeric(value)
@@ -181,11 +181,11 @@ library(tidyquant)
 a=2
 for (i in parsedList)
 {
-  df <- subset(combined_data, select = c(1, combined_data$CPIAUCSL))
+  df <- subset(combined_data, select = c(1, a))
   
   df %>%
     tq_transmute(select = 2,
-                 mutate_fun = apply.yearly,
+                 mutate_fun = apply.weekly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
