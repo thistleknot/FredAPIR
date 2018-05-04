@@ -145,26 +145,19 @@ print(df3)
 #https://stackoverflow.com/a/50173660/1731972
 
 #file begins with numeric iterations
+ncol(combined_data_z)
 
-write.csv(df3, file = "testing.csv")
+dates <- combined_data_z[,1]
+test1 <- combined_data_z[c(2:ncol(combined_data_z)-1)]
 
-combined_data_z <- read.csv(file="testing.csv")
+#ncol(test1)
 
-#combined_data_z <- df3
-combined_data_z[,1] <- NULL
-print(combined_data_z)
+test1_z <- zoo(test1)
+test1_z_approx <- na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend")
 
-test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-1, nrow = nrow(combined_data_z))
-head(test1_z_approx)
-for (i in 2:ncol(combined_data_z))
-{
-  
-  dates <- combined_data_z[,1]
-  test1 <- combined_data_z[,i]
-  test1_z <- zoo(test1)
-  test1_z_approx[,i-1] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
-  
-  
-}
-head(test1_z_approx)
+print(test1_z_approx)
 
+print(combined_data_z[1])
+#print(dates)
+new <- cbind(combined_data_z[1], test1_z_approx)
+print(new)
