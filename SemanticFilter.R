@@ -140,7 +140,7 @@ for (i in parsedList)
   }
   
 }
-print(df3)
+#print(df3)
 
 #https://stackoverflow.com/a/50173660/1731972
 
@@ -156,8 +156,12 @@ test1_z <- zoo(test1)
 
 test1_z_approx <- na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend")
 
+colnames(test1_z_approx)=colnames(test1_z)
+colnames(test1_z_approx)
 new <- cbind(combined_data_z[1], test1_z_approx)
 print(new)
+
+write.csv(new, file = "output_test.csv")
 
 
 
