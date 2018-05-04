@@ -148,16 +148,16 @@ print(df3)
 ncol(combined_data_z)
 
 dates <- combined_data_z[,1]
+
+#important to start at 2!, otherwise na.approx will not work!
 test1 <- combined_data_z[c(2:ncol(combined_data_z)-1)]
 
-#ncol(test1)
-
 test1_z <- zoo(test1)
+
 test1_z_approx <- na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend")
 
-print(test1_z_approx)
-
-print(combined_data_z[1])
-#print(dates)
 new <- cbind(combined_data_z[1], test1_z_approx)
 print(new)
+
+
+
