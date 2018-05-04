@@ -178,21 +178,38 @@ library(tidyquant)
 
 #aggregate
 #https://stackoverflow.com/questions/10085806/extracting-specific-columns-from-a-data-frame
+
+#reduced data set to weekly
+df3 <- c()
 a=2
 for (i in parsedList)
 {
   df <- subset(combined_data, select = c(1, a))
   
-  df %>%
+  df2 <- df %>%
     tq_transmute(select = 2,
                  mutate_fun = apply.weekly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
-  print(df)
-  a=a+1
+  #print(df2)
+  
+  #1st pass has date (single dataframe includes two columns)
+  if(a==2)
+  {
+    df3 <- df2
+    a=a+1  
+  }
+  else
+    #subsequent passes include two columns across two dataframes
+  {
+    df3 <- c(df3, df2[,2])
+    a=a+1
+  }
+  
   
 }
+#print(df3)
 
 
 sample_matrix <- zoo(combined_data[,3])
