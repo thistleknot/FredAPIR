@@ -1,3 +1,7 @@
+install.packages("zoo")
+install.packages("xts")
+install.packages("tidyquant")
+
 library(data.table)
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
@@ -169,17 +173,55 @@ combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_process
 
 #
 library(zoo)
+library(xts)
+library(tidyquant)
 
-m <- combined_data
-na.locf(na.approx(m))
-## "first observation carry backwards" too:
-na.locf(na.locf(na.approx(m)), fromLast = TRUE)
+#aggregate
+#https://stackoverflow.com/questions/10085806/extracting-specific-columns-from-a-data-frame
+a=2
+for (i in parsedList)
+{
+  df <- subset(combined_data, select = c(1, combined_data$CPIAUCSL))
+  
+  df %>%
+    tq_transmute(select = 2,
+                 mutate_fun = apply.yearly,
+                 #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
+                 na.rm = TRUE,
+                 FUN        = mean)
+  print(df)
+  a=a+1
+  
+}
 
+
+sample_matrix <- zoo(combined_data[,3])
+data(sample_matrix)
+x <- as.xts(sample_matrix, dateFormat = "Date")
+(m <- apply.monthly(x, mean, na.rm = TRUE))
 print(m)
+
+#1 = date
+#2 = 1st dataset
+dates <- combined_data_z[,1]; 
+test1 <- combined_data_z[,2];
+
+test1_z <- zoo(test1);
+test1_z_approx <- na.fill(na.approx(test1, x=dates, rule=2), "extend")
+
+print(test1_z_approx)
+
+write.csv(test1_z_approx, file = "output.csv")
+
+#m <- combined_data
+#na.locf(na.approx(m))
+## "first observation carry backwards" too:
+#na.locf(na.locf(na.approx(m)), fromLast = TRUE)
+
+#print(m)
 #print(Cz_approx)
 
 #print(data_list_processed)
 
 #print(combined_data)
 
-write.csv(m, file = "output.csv")
