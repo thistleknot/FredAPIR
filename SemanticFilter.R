@@ -2,7 +2,15 @@ install.packages("zoo")
 install.packages("xts")
 install.packages("tidyquant")
 
+#note
+#2008 05 01 most important datasets start here
+
+start_date="2008-05-01"
+
 library(data.table)
+library(zoo)
+library(xts)
+library(tidyquant)
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
@@ -64,72 +72,13 @@ parsedList<-unique(names)
 
 print(parsedList)
 
-data<-c()
-
-a=1
-for (i in parsedList)
-{
-  test <- fred$series.observations(series_id = parsedList[a], observation_start = "2000-01-01", observation_end = "2018-03-01")
-
-  test %>%
-    select(
-      date,
-      value
-    ) %>%
-    mutate(
-      date = as.Date(date),
-      value = as.numeric(value)
-    ) ->
-    dt
-
-  require(ggplot2)
-  #print(dt)
-  #write.csv(dt, file = parsedList[a])
-  qplot(data = dt, x = date, y = value, geom = 'line')
-
-  a=a+1
-}
-
-dt3<-c()
-dt4<-c()
-dt5<-c()
-
-print(length(parsedList))
-
-#join by date
-a=1
-for (i in parsedList)
-{
-
-  {
-    test <- fred$series.observations(series_id = parsedList[a], observation_start = "2000-01-01", observation_end = "2018-03-01")
-
-    test %>%
-      select(
-        date,
-        value
-      ) %>%
-      mutate(
-        date = as.Date(date),
-        value = as.numeric(value)
-      ) ->
-      dt[a]
-
-    #use merge
-
-  }
-  a=a+1
-  #break
-
-}
-
 #https://stackoverflow.com/questions/50118593/r-join-all-datasets-by-date/50139902#50139902
 # first download all the data    
 #by Gregor 2018-05-2
 data_list = lapply(parsedList, function(a)
   fred$series.observations(
     series_id = a,
-    observation_start = "2000-01-01",
+    observation_start = start_date,
     observation_end = "2018-03-01"
   )
 )
@@ -138,8 +87,8 @@ data_list = lapply(parsedList, function(a)
 a=1
 for (i in parsedList)
 {
-  print(parsedList[a])
-  print(data_list[a])
+  #print(parsedList[a])
+  #print(data_list[a])
   a=a+1
 }
 
@@ -156,30 +105,21 @@ process_data = function(d, value_name) {
 # process the data
 data_list_processed = list()
 for (i in seq_along(data_list)) {
-  data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
-  print(data_list_processed[[1]])
-  #print(process_data(data_list[[i]], value_name = paste0(parsedList[i])))
-        
-  #combined_data = Reduce(merge, data_list_processed)
   
-  #set
-  #df2[df1, on = c('id','dates')]
+  #apply names
+  data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
+
 }
 
-# merge the data
+#merge data by date
+
 #combined_data = Reduce(merge, data_list_processed)
 
 combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
 
-#
-library(zoo)
-library(xts)
-library(tidyquant)
-
-#aggregate
+#aggregate/reduce data from daily (due to join by date operation) to weekly
 #https://stackoverflow.com/questions/10085806/extracting-specific-columns-from-a-data-frame
 
-#reduced data set to weekly
 df3 <- c()
 a=2
 for (i in parsedList)
@@ -209,36 +149,24 @@ for (i in parsedList)
   
   
 }
-#print(df3)
 
 
-sample_matrix <- zoo(combined_data[,3])
-data(sample_matrix)
-x <- as.xts(sample_matrix, dateFormat = "Date")
-(m <- apply.monthly(x, mean, na.rm = TRUE))
-print(m)
+#,1 = date
+#,2 = 1st dataset, trying to get a loop using a
+a=2
+for(i in parsedList)
+{
+  dates <- c(df3[,1])
+  test1 <- c(df3[,2])
+  a=a+1
+  
+}
 
-#1 = date
-#2 = 1st dataset
-dates <- combined_data_z[,1]; 
-test1 <- combined_data_z[,2];
-
+dates <- df3[,1]; 
+test1 <- df3[,2];
 test1_z <- zoo(test1);
 test1_z_approx <- na.fill(na.approx(test1, x=dates, rule=2), "extend")
+#print(test1_z_approx)
 
-print(test1_z_approx)
-
-write.csv(test1_z_approx, file = "output.csv")
-
-#m <- combined_data
-#na.locf(na.approx(m))
-## "first observation carry backwards" too:
-#na.locf(na.locf(na.approx(m)), fromLast = TRUE)
-
-#print(m)
-#print(Cz_approx)
-
-#print(data_list_processed)
-
-#print(combined_data)
+write.csv(df3, file = "output.csv")
 
