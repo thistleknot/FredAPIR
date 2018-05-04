@@ -115,11 +115,12 @@ df3 <- c()
 a=2
 for (i in parsedList)
 {
+  #select subset of combined data, in this case, date, and column a (starts at 2)
   df <- subset(combined_data, select = c(1, a))
   
   df2 <- df %>%
     tq_transmute(select = 2,
-                 mutate_fun = apply.weekly,
+                 mutate_fun = apply.quarterly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
@@ -144,8 +145,6 @@ for (i in parsedList)
 library(zoo)
 #this .csv is my weekly aggregated df3
 combined_data_z <- df3
-#<- read.csv(file="http://thistleknot.sytes.net/wordpress/wp-content/uploads/2018/04/output_NoNA.csv")
-
 
 test1_z_approx <- matrix(NA, ncol=ncol(combined_data_z)-2, nrow = nrow(combined_data_z))
 for (i in 3:ncol(combined_data_z))
@@ -154,9 +153,10 @@ for (i in 3:ncol(combined_data_z))
   dates <- combined_data_z[,1]
   test1 <- combined_data_z[,i]
   test1_z <- zoo(test1)
-  test1_z_approx[,i-2] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
   
+  #keeps appending, problem is it skips date
+  test1_z_approx[,i-2] <-as.matrix( na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend"))[,1]
+  print(test1_z_approx[,i-2])
 }
-#right now, list exports with incorrect headers, includes an additional row column, and no date column.  Also extends the beginning date range to beginning of year.  
-#I fix all this post export.
-write.csv(test1_z_approx, file = "output_test.csv")
+
+
