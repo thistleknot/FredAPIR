@@ -1,3 +1,10 @@
+
+
+devtools::install_github("jcizel/FredR")
+
+api.key = '661c0a90e914477da5a7518293de5f8e'
+fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
+
 install.packages("zoo")
 install.packages("xts")
 install.packages("tidyquant")
@@ -11,6 +18,13 @@ library(data.table)
 library(zoo)
 library(xts)
 library(tidyquant)
+
+
+library(pipeR)
+library(dplyr)
+
+require(ggplot2)
+require(gridExtra)
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
@@ -140,25 +154,48 @@ for (i in parsedList)
   }
   
 }
-#print(df3)
+print(df3)
 
+combined_data_z <- df3
 #https://stackoverflow.com/a/50173660/1731972
 
 #file begins with numeric iterations
-ncol(combined_data_z)
+#ncol(combined_data_z)
 
-dates <- combined_data_z[,1]
+dates <- combined_data_z[1]
+
+print(dates)
+
 
 #important to start at 2!, otherwise na.approx will not work!
-test1 <- combined_data_z[c(2:ncol(combined_data_z)-1)]
 
-test1_z <- zoo(test1)
+#either copy from 2: on or copy whole and drop first column (date)
+#test1 <- combined_data_z[c(2:length(parsedList)+1)]
 
-test1_z_approx <- na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend")
+#drop date
+test1 <- combined_data_z
+test1[1] <- NULL
 
-colnames(test1_z_approx)=colnames(test1_z)
-colnames(test1_z_approx)
-new <- cbind(combined_data_z[1], test1_z_approx)
+print(test1)                  
+
+#wtf, had to add data.frame today!
+test1_z <- zoo(data.frame(test1))
+
+date_z <- zoo(data.frame(dates))
+
+print(test1_z)
+
+#colnames(test1_z)
+
+print(dates)
+
+test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE), "extend")
+
+print(test1_z_approx)
+
+#new <- NULL
+print(new)
+new <- c(data.frame(dates),data.frame(test1_z_approx))
 print(new)
 
 write.csv(new, file = "output_test.csv")
