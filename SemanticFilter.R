@@ -156,16 +156,7 @@ test1_z <- zoo(test1)
 
 test1_z_approx <- na.fill(na.approx(test1_z, x=dates, rule=2, na.rm = FALSE), "extend")
 
-a=1
-for (i in 2:ncol(combined_data_z)-1)
-{
-  colnames(test1_z_approx)[a-1]=colnames(test1_z)[a]
-  a=a+1
-  
-}
-
-
-
+colnames(test1_z_approx)=colnames(test1_z)
 colnames(test1_z_approx)
 new <- cbind(combined_data_z[1], test1_z_approx)
 print(new)
