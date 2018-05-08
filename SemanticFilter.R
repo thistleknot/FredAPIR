@@ -166,7 +166,6 @@ dates <- combined_data_z[1]
 
 print(dates)
 
-
 #important to start at 2!, otherwise na.approx will not work!
 
 #either copy from 2: on or copy whole and drop first column (date)
@@ -194,11 +193,33 @@ test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE),
 print(test1_z_approx)
 
 #new <- NULL
-print(new)
+#print(new)
 new <- c(data.frame(dates),data.frame(test1_z_approx))
-print(new)
+#print(new)
 
-write.csv(new, file = "output_test.csv")
+#setup sliding windows up to past 6 iterations
+
+size=nrow(data.frame(new))
+
+future <- c()
+
+#offset 
+#https://stackoverflow.com/questions/4219715/r-create-a-copy-of-a-column-where-the-new-column-is-offset-by-some-fixed-amount
+
+#apply(lag(zoo(dta), c(-1,0), na.pad = TRUE), 1L, diff)
+#https://stackoverflow.com/questions/45638529/zoo-lag-diff-back-in-data-frame/45639642?noredirect=1
+past1Iteration=lag(new$SPCS20RSA,-1)
+
+future <- c(new$SPCS20RSA)
+require(zoo)
+apply(lag(zoo(future), c(-1,0), na.pad = TRUE), 1L, diff)
+
+print(past1Iteration)
+
+futureSPC=lag(new$SPCS20RSA,1)
+print(futureSPC)
+
+#write.csv(new, file = "output_test.csv")
 
 
 
