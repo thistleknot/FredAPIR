@@ -25,6 +25,7 @@ library(dplyr)
 
 require(ggplot2)
 require(gridExtra)
+require(zoo)
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
@@ -210,11 +211,15 @@ future <- c()
 #https://stackoverflow.com/questions/45638529/zoo-lag-diff-back-in-data-frame/45639642?noredirect=1
 past1Iteration=lag(new$SPCS20RSA,-1)
 
-future <- c(new$SPCS20RSA)
-require(zoo)
-apply(lag(zoo(future), c(-1,0), na.pad = TRUE), 1L, diff)
+future <- c()
 
-print(past1Iteration)
+#can add multiple lags here!  Very very useful!
+future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
+
+past <- c()
+past <- lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3), na.pad =TRUE)
+
+print(past)
 
 futureSPC=lag(new$SPCS20RSA,1)
 print(futureSPC)
