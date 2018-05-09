@@ -212,15 +212,17 @@ size=nrow(data.frame(new))
 future <- c()
 
 #can add multiple lags here!  Very very useful!
-future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
+#future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
 
-past <- c()
-past <- lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3), na.pad =TRUE)
+#past <- c()
+#past <- lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3), na.pad =TRUE)
 
-print(past)
+#print(past)
 
-futureSPC=lag(new$SPCS20RSA,1)
-print(futureSPC)
+
+install.packages("zoo")
+require(zoo)
+lag(zoo(c(new$SPCS20RSA)), c(-1,-2), na.pad =TRUE)
 
 #write.csv(new, file = "output_test.csv")
 
