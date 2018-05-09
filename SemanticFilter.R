@@ -218,11 +218,11 @@ past <- c()
 
 #print(past)
 
-future=stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
-print(future)
+#future=stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
+#print(future)
 
-past=stats::lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
-print(past)
+#past=stats::lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
+#print(past)
 
 a=1
 for (i in parsedList)
@@ -236,15 +236,22 @@ for (i in parsedList)
   
   names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"), paste(names(new[a]), "-5") )
   names(new[a])
-  print(names(past))
+  #print(names(past))
   
-  #merged <- (past, past)
-
-  print(past)
+  #new <- c(new, past[1:5])
+  
+  #join
+  #print(past)
+  #print(new)
+  #new <- c(new, past)
+  #merged <- (new, past)
+  #cbind(new, past)
+  
   #rint
   a=a+1
   
 } 
+print(new)
 print(past)
 print(data.frame(past))
 #print(merged)
