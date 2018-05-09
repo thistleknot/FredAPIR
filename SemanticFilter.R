@@ -196,20 +196,18 @@ print(test1_z_approx)
 #new <- NULL
 #print(new)
 new <- c(data.frame(dates),data.frame(test1_z_approx))
-#print(new)
+print(new)
 
 #setup sliding windows up to past 6 iterations
 
+#not used
 size=nrow(data.frame(new))
-
-future <- c()
 
 #offset 
 #https://stackoverflow.com/questions/4219715/r-create-a-copy-of-a-column-where-the-new-column-is-offset-by-some-fixed-amount
 
 #apply(lag(zoo(dta), c(-1,0), na.pad = TRUE), 1L, diff)
 #https://stackoverflow.com/questions/45638529/zoo-lag-diff-back-in-data-frame/45639642?noredirect=1
-past1Iteration=lag(new$SPCS20RSA,-1)
 
 future <- c()
 
