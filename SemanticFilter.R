@@ -5,27 +5,24 @@ devtools::install_github("jcizel/FredR")
 api.key = '661c0a90e914477da5a7518293de5f8e'
 fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 
-install.packages("zoo")
+install.packages("zoo", restart=TRUE)
 install.packages("xts")
 install.packages("tidyquant")
 
-#note
-#2008 05 01 most important datasets start here
-
-start_date="2008-05-01"
-
 library(data.table)
-library(zoo)
 library(xts)
 library(tidyquant)
-
-
+library(zoo)
 library(pipeR)
 library(dplyr)
 
 require(ggplot2)
 require(gridExtra)
 require(zoo)
+
+#note
+#2008 05 01 most important datasets start here
+start_date="2008-05-01"
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
@@ -178,6 +175,8 @@ test1[1] <- NULL
 
 print(test1)                  
 
+
+
 #wtf, had to add data.frame today!
 test1_z <- zoo(data.frame(test1))
 
@@ -214,18 +213,15 @@ future <- c()
 #can add multiple lags here!  Very very useful!
 #future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
 
-#past <- c()
+past <- c()
 #past <- lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3), na.pad =TRUE)
 
 #print(past)
 
-install.packages("zoo")
-require(zoo)
-
-future=lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
+future=stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
 print(future)
 
-past=lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
+past=stats::lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
 print(past)
 
 a=1
@@ -235,7 +231,11 @@ for (i in parsedList)
   #doesn't work in a loop
   print(i)
   print(a)
-  past <- lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE)
+  past <- stats::lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE)
+  
+  
+  names(past) <- (names(new[a])+"-1",names(new[a])+"-2",names(new[a])+"-3",names(new[a])+"-4",names(new[a])+"-5")
+  names(new[a])
   
   #merged <- (past, past)
 
@@ -246,13 +246,13 @@ for (i in parsedList)
 } 
 print(past)
 print(data.frame(past))
-print(merged)
+#print(merged)
 
 
 #automatically create n lags
 #library(data.table)
 
-n <- size=ncol(data.frame(new)
+#n <- ncol(data.frame(new))
 #setDT(data.frame(new))[, paste("t", 1:n) := shift(new, 1:n)][]
 
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
