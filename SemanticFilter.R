@@ -219,12 +219,47 @@ future <- c()
 
 #print(past)
 
-
 install.packages("zoo")
 require(zoo)
-lag(zoo(c(new$SPCS20RSA)), c(-1,-2), na.pad =TRUE)
+
+future=lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
+print(future)
+
+past=lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
+print(past)
+
+a=1
+for (i in parsedList)
+{
+  #print(i)
+  #doesn't work in a loop
+  print(i)
+  print(a)
+  past <- lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE)
+  
+  #merged <- (past, past)
+
+  print(past)
+  #rint
+  a=a+1
+  
+} 
+print(past)
+print(data.frame(past))
+print(merged)
+
+
+#automatically create n lags
+#library(data.table)
+
+n <- size=ncol(data.frame(new)
+#setDT(data.frame(new))[, paste("t", 1:n) := shift(new, 1:n)][]
+
+#https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 
 #write.csv(new, file = "output_test.csv")
+
+
 
 
 
