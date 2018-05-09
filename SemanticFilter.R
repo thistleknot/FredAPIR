@@ -234,8 +234,9 @@ for (i in parsedList)
   past <- stats::lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE)
   
   
-  names(past) <- (names(new[a])+"-1",names(new[a])+"-2",names(new[a])+"-3",names(new[a])+"-4",names(new[a])+"-5")
+  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"), paste(names(new[a]), "-5") )
   names(new[a])
+  print(names(past))
   
   #merged <- (past, past)
 
