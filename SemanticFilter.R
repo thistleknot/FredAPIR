@@ -196,7 +196,9 @@ print(test1_z_approx)
 
 #new <- NULL
 #print(new)
-
+new <- c()
+new2 <- c()
+new3 <- c()
 past <- c()
 past2 <- c()
 past3 <- c()
@@ -254,7 +256,12 @@ print(past3)
 #print(past)
 #print(data.frame(past))
 #print(merged)
+future <- stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad = TRUE)
+future2 <- data.frame(future)
+
 new2=cbind(new,past3)
+
+new3=cbind(new2,future2)
 
 #automatically create n lags
 #library(data.table)
@@ -264,7 +271,7 @@ new2=cbind(new,past3)
 
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 
-write.csv(new2, file = "output_test.csv")
+write.csv(new3, file = "output_test.csv")
 
 
 
