@@ -1,9 +1,7 @@
-
+#written by Joshua Laferriere
+#2018-05-10
 
 devtools::install_github("jcizel/FredR")
-
-api.key = '661c0a90e914477da5a7518293de5f8e'
-fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 
 install.packages("zoo", restart=TRUE)
 install.packages("xts")
@@ -20,9 +18,16 @@ require(ggplot2)
 require(gridExtra)
 require(zoo)
 
+
+api.key = '661c0a90e914477da5a7518293de5f8e'
+fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
+
 #note
 #2008 05 01 most important datasets start here
 start_date="2008-05-01"
+end_date="2018-03-01"
+
+minLag=-4
 
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
@@ -80,7 +85,8 @@ for (i in semanticList)
 
 }
 
-parsedList<-unique(names)
+#parsedList<-unique(names)
+parsedList<-c("PAYEMS","A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
 
 print(parsedList)
 
@@ -91,7 +97,7 @@ data_list = lapply(parsedList, function(a)
   fred$series.observations(
     series_id = a,
     observation_start = start_date,
-    observation_end = "2018-03-01"
+    observation_end = end_date
   )
 )
 
@@ -177,16 +183,10 @@ test1[1] <- NULL
 
 print(test1)                  
 
-
-
 #wtf, had to add data.frame today!
 test1_z <- zoo(data.frame(test1))
 
 date_z <- zoo(data.frame(dates))
-
-print(test1_z)
-
-#colnames(test1_z)
 
 print(dates)
 
@@ -194,8 +194,11 @@ test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE),
 
 print(test1_z_approx)
 
-#new <- NULL
-#print(new)
+#automatically create n lags
+
+#automatically create lags
+#reset outside
+
 new <- c()
 new2 <- c()
 new3 <- c()
@@ -204,8 +207,9 @@ past2 <- c()
 past3 <- c()
 new <- c(data.frame(dates),data.frame(test1_z_approx))
 ncol(data.frame(new))
-#reset outside
-#y <- c()
+
+#https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
+
 count=length(parsedList)+1
 a=1
 for (i in 1:count)
@@ -214,48 +218,31 @@ for (i in 1:count)
   #naming
   print(i)
   print(a)
-  past <- c(stats::lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE))
+  past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
   
-  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"), paste(names(new[a]), "-5") )
+  #need to loop down to minLag
+  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"))
   names(new[a])
-  #print(names(past))
-  
-  #new <- c(new, past[1:5])
-  
+
   past2=data.frame(past)
-  
   
   #join
   if(a==1)
   {
     past3 <- past2
-    #past2 <- data.frame(past)
     
   }
   else
   {
     past3<-cbind(past3,past2)
-    #cbind(past2,data.frame(past))  
   }
-  #past2 <- data.frame(past)
-  #past2
-  
-  #print(new)
-  #new <- c(new, past)
-  #merged <- (new, past)
-  #cbind(new, past)
-  
-  #rint
+
   a=a+1
   
 } 
-#print(new)
+
 print(past3)
-#print(y)
-#print(new)
-#print(past)
-#print(data.frame(past))
-#print(merged)
+
 future <- stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
@@ -263,13 +250,7 @@ new2=cbind(new,past3)
 
 new3=cbind(new2,future2)
 
-#automatically create n lags
-#library(data.table)
 
-#n <- ncol(data.frame(new))
-#setDT(data.frame(new))[, paste("t", 1:n) := shift(new, 1:n)][]
-
-#https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 
 write.csv(new3, file = "output_test.csv")
 
