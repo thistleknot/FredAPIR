@@ -196,27 +196,10 @@ print(test1_z_approx)
 
 #new <- NULL
 #print(new)
-new <- c(data.frame(dates),data.frame(test1_z_approx))
-print(new)
-
-#setup sliding windows up to past 6 iterations
-
-#not used
-size=nrow(data.frame(new))
-
-#offset 
-#https://stackoverflow.com/questions/4219715/r-create-a-copy-of-a-column-where-the-new-column-is-offset-by-some-fixed-amount
-
-#apply(lag(zoo(dta), c(-1,0), na.pad = TRUE), 1L, diff)
-#https://stackoverflow.com/questions/45638529/zoo-lag-diff-back-in-data-frame/45639642?noredirect=1
-
-future <- c()
-
-#can add multiple lags here!  Very very useful!
-#future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
 
 past <- c()
 past2 <- c()
+past3 <- c()
 new <- c(data.frame(dates),data.frame(test1_z_approx))
 ncol(data.frame(new))
 #reset outside
@@ -225,12 +208,11 @@ count=length(parsedList)+1
 a=1
 for (i in 1:count)
 {
-  #print(i)
-  #doesn't work in a loop
+
+  #naming
   print(i)
   print(a)
-  past <- stats::lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE)
-  
+  past <- c(stats::lag(zoo(c(new[[a]])), c(-1,-2, -3, -4, -5), na.pad =TRUE))
   
   names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"), paste(names(new[a]), "-5") )
   names(new[a])
@@ -238,8 +220,24 @@ for (i in 1:count)
   
   #new <- c(new, past[1:5])
   
+  past2=data.frame(past)
+  
+  
   #join
-  print(past)
+  if(a==1)
+  {
+    past3 <- past2
+    #past2 <- data.frame(past)
+    
+  }
+  else
+  {
+    past3<-cbind(past3,past2)
+    #cbind(past2,data.frame(past))  
+  }
+  #past2 <- data.frame(past)
+  #past2
+  
   #print(new)
   #new <- c(new, past)
   #merged <- (new, past)
@@ -250,13 +248,13 @@ for (i in 1:count)
   
 } 
 #print(new)
-print(past)
+print(past3)
 #print(y)
 #print(new)
-print(past)
-print(data.frame(past))
+#print(past)
+#print(data.frame(past))
 #print(merged)
-
+new2=cbind(new,past3)
 
 #automatically create n lags
 #library(data.table)
@@ -266,7 +264,7 @@ print(data.frame(past))
 
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 
-#write.csv(new, file = "output_test.csv")
+write.csv(new2, file = "output_test.csv")
 
 
 
