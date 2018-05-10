@@ -125,6 +125,8 @@ combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_process
 df3 <- c()
 
 a=2
+#okay to go from 2 due ot date
+#and from i in parsedList because a is what's offset from 2.
 for (i in parsedList)
 {
   #select subset of combined data, in this case, date, and column a (starts at 2)
@@ -214,18 +216,14 @@ future <- c()
 #future <- lag(zoo(c(new$SPCS20RSA)), c(-1), na.pad = TRUE)
 
 past <- c()
-#past <- lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3), na.pad =TRUE)
-
-#print(past)
-
-#future=stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad =TRUE)
-#print(future)
-
-#past=stats::lag(zoo(c(new$SPCS20RSA)), c(-1,-2,-3,-4,-5), na.pad =TRUE)
-#print(past)
-
+past2 <- c()
+new <- c(data.frame(dates),data.frame(test1_z_approx))
+ncol(data.frame(new))
+#reset outside
+#y <- c()
+count=length(parsedList)+1
 a=1
-for (i in parsedList)
+for (i in 1:count)
 {
   #print(i)
   #doesn't work in a loop
@@ -241,7 +239,7 @@ for (i in parsedList)
   #new <- c(new, past[1:5])
   
   #join
-  #print(past)
+  print(past)
   #print(new)
   #new <- c(new, past)
   #merged <- (new, past)
@@ -251,7 +249,10 @@ for (i in parsedList)
   a=a+1
   
 } 
-print(new)
+#print(new)
+print(past)
+#print(y)
+#print(new)
 print(past)
 print(data.frame(past))
 #print(merged)
