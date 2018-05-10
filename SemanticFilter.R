@@ -24,12 +24,15 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 
 #note
 #2008 05 01 most important datasets start here
-start_date="2008-05-01"
+start_date="2000-05-01"
 end_date="2018-03-01"
 
 minLag=-4
 
-semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
+#hack to reduce time
+#semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
+
+semanticList = c("Population")
 
 semanticScore=77
 
@@ -87,6 +90,8 @@ for (i in semanticList)
 
 #parsedList<-unique(names)
 parsedList<-c("PAYEMS","A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
+#date and SPC not important for y.
+#parsedList<-c("A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
 
 print(parsedList)
 
