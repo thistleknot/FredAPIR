@@ -27,7 +27,7 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 start_date="2000-05-01"
 end_date="2018-03-01"
 
-minLag=-4
+minLag=-3
 
 #hack to reduce time
 #semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
@@ -89,8 +89,10 @@ for (i in semanticList)
 }
 
 #parsedList<-unique(names)
-parsedList<-c("PAYEMS","A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
+parsedList<-c("SPCS20RSA", "DGS1", "PAYEMS", "T10Y3M")
+#parsedList<-c("PAYEMS","A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
 #date and SPC not important for y.
+#correction, SPC is important. It has a large prediction of the outcome direction, but doesn't explain all the movement.
 #parsedList<-c("A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
 
 print(parsedList)
@@ -226,7 +228,7 @@ for (i in 1:count)
   past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
   
   #need to loop down to minLag
-  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"), paste(names(new[a]), "-4"))
+  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"))
   names(new[a])
 
   past2=data.frame(past)
