@@ -23,8 +23,9 @@ api.key = '661c0a90e914477da5a7518293de5f8e'
 fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 
 #note
-#2008 05 01 most important datasets start here
-start_date="2000-05-01"
+#switched housing index to USSTHPI which goes back to 1980!
+#test for modes, if mode = min, or max, dataset was extended. then remove column
+start_date="1980-01-01"
 end_date="2018-03-01"
 
 minLag=-3
@@ -89,11 +90,15 @@ for (i in semanticList)
 }
 
 #parsedList<-unique(names)
-parsedList<-c("SPCS20RSA", "DGS1", "PAYEMS", "T10Y3M")
-#parsedList<-c("PAYEMS","A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
+
+print(parsedList)
+#Sorted by importance
+#parsedList<-c("SPCS20RSA", "DGS1", "PAYEMS", "T10Y3M","TEDRATE","WPU0911","T5YIE","PSAVERT","A191RL1Q225SBEA")
 #date and SPC not important for y.
 #correction, SPC is important. It has a large prediction of the outcome direction, but doesn't explain all the movement.
 #parsedList<-c("A191RL1Q225SBEA","WPU0911","DGS1","PSAVERT","TEDRATE","T10Y3M","T5YIE","SPCS20RSA")
+#ussthpi predictors
+parsedList<-c("DCOILBRENTEU","HDTGPDUSQ163N","M1V","INTDSRUSM193N","BAMLH0A3HYC","TREAST","DGS10","MEHOINUSA672N","DFII10","DCOILWTICO","VIXCLS","TCU","UNRATE","BAMLC0A0CM","STLFSI","ICSA","IC4WSA","USSTHPI")
 
 print(parsedList)
 
@@ -250,14 +255,12 @@ for (i in 1:count)
 
 print(past3)
 
-future <- stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad = TRUE)
+future <- stats::lag(zoo(c(new$USSTHPI)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
 new2=cbind(new,past3)
 
 new3=cbind(new2,future2)
-
-
 
 write.csv(new3, file = "output_test.csv")
 
