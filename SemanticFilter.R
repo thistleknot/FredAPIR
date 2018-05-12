@@ -28,7 +28,7 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 start_date="2008-05-01"
 end_date="2018-03-01"
 
-minLag=-8
+minLag=-5
 
 #hack to reduce time
 semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
@@ -245,7 +245,7 @@ for (i in 1:count)
   past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
   
   #need to loop down to minLag
-  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"),paste(names(new[a]), "-4"),paste(names(new[a]), "-5"),paste(names(new[a]), "-6"),paste(names(new[a]), "-7"),paste(names(new[a]), "-8"))
+  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"),paste(names(new[a]), "-4"),paste(names(new[a]), "-5"))
   names(new[a])
 
   past2=data.frame(past)
