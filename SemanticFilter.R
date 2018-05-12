@@ -100,7 +100,17 @@ print(parsedList)
 #ussthpi predictors
 #parsedList<-c("DCOILBRENTEU","HDTGPDUSQ163N","M1V","INTDSRUSM193N","BAMLH0A3HYC","TREAST","DGS10","MEHOINUSA672N","DFII10","DCOILWTICO","VIXCLS","TCU","UNRATE","BAMLC0A0CM","STLFSI","ICSA","IC4WSA","USSTHPI")
 
-parsedList<-c("DCOILBRENTEU","TREAST","INTDSRUSM193N","UNRATE","M1V","MEHOINUSA672N","STLFSI","BAMLH0A3HYC","DGS1MO","HDTGPDUSQ163N","TCU","VIXCLS", "IC4WSA","USSTHPI")
+#problems:
+#start late: DCOILBRENTEU, TREAST, STLFSI,VIXCLS,DGS1MO,HDTGPDUSQ163N
+
+#100% model, used to predict?
+#parsedList<-c("DCOILBRENTEU","TREAST","INTDSRUSM193N","UNRATE","M1V","MEHOINUSA672N","STLFSI","BAMLH0A3HYC","DGS1MO","TCU","VIXCLS", "IC4WSA","USSTHPI")
+
+#parsedList<-c("INTDSRUSM193N","UNRATE","M1V","MEHOINUSA672N","BAMLH0A3HYC","TCU", "IC4WSA","USSTHPI")
+
+#all I need for 100% binary logistic regression success.
+parsedList<-c("INTDSRUSM193N","VIXCLS","M1V","TCU","USSTHPI")
+
 
 print(parsedList)
 
@@ -263,6 +273,57 @@ future2 <- data.frame(future)
 new2=cbind(new,past3)
 
 new3=cbind(new2,future2)
+
+#https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
+#https://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
+#https://stackoverflow.com/questions/21148498/remove-last-n-rows-in-data-frame-with-the-arbitrary-number-of-rows
+
+#linear model
+#remove last future value
+n<-dim(df)[1]
+
+#nrow(df)
+df<-df[1:(n-1),]
+
+future3<-df$future
+
+#remove future
+#https://stackoverflow.com/questions/10162480/copy-many-columns-from-one-data-frame-to-another
+data2<-df[,c(1:ncol(df)-1)]
+
+
+#acquire # of rows
+n<-dim(df2)[1]
+
+#nrow(df)
+df5<-df2[1:(n-1),]
+n<-dim(df5)[1]
+
+
+#remove first 3 rows
+N <- 3
+
+naRemovedBottomData <- tail(df5, -3)
+naRemovedBottomFuture<-c()
+
+#remove last entry
+nrow(naRemovedBottomFuture)
+nrow(naRemovedBottomData)
+
+future4<-head(future3,-1)
+naRemovedBottomFuture <- tail(future4,-3)
+
+#tail(future, -N)
+
+#nrow(df)
+
+nrow(naRemovedBottomData)
+nrow(data.frame(naRemovedBottomFuture))
+
+#not exactly what I want, but I see how multiple regression is implemented now.
+fit <- lm(future ~ INTDSRUSM193N, data=new3)
+
+
 
 write.csv(new3, file = "output_test.csv")
 
