@@ -25,15 +25,15 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 #note
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
-start_date="1980-01-01"
+start_date="2008-05-01"
 end_date="2018-03-01"
 
-minLag=-3
+minLag=-8
 
 #hack to reduce time
-#semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
+semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetary Base", "Real", "Money Stock", "Treasury",  "Spread")
 
-semanticList = c("Population")
+#semanticList = c("Population")
 
 semanticScore=77
 
@@ -89,7 +89,7 @@ for (i in semanticList)
 
 }
 
-#parsedList<-unique(names)
+parsedList<-unique(names)
 
 print(parsedList)
 #Sorted by importance
@@ -109,7 +109,7 @@ print(parsedList)
 #parsedList<-c("INTDSRUSM193N","UNRATE","M1V","MEHOINUSA672N","BAMLH0A3HYC","TCU", "IC4WSA","USSTHPI")
 
 #all I need for 100% binary logistic regression success.
-parsedList<-c("INTDSRUSM193N","VIXCLS","M1V","TCU","USSTHPI")
+#parsedList<-c("INTDSRUSM193N","VIXCLS","M1V","TCU","USSTHPI")
 
 
 print(parsedList)
@@ -164,7 +164,7 @@ for (i in parsedList)
   
   df2 <- df %>%
     tq_transmute(select = 2,
-                 mutate_fun = apply.quarterly,
+                 mutate_fun = apply.weekly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
@@ -184,7 +184,7 @@ for (i in parsedList)
   }
   
 }
-print(df3)
+#print(df3)
 
 combined_data_z <- df3
 #https://stackoverflow.com/a/50173660/1731972
@@ -205,7 +205,7 @@ print(dates)
 test1 <- combined_data_z
 test1[1] <- NULL
 
-print(test1)                  
+#print(test1)                  
 
 #wtf, had to add data.frame today!
 test1_z <- zoo(data.frame(test1))
@@ -216,7 +216,7 @@ print(dates)
 
 test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE), "extend")
 
-print(test1_z_approx)
+#print(test1_z_approx)
 
 #automatically create n lags
 
@@ -245,7 +245,7 @@ for (i in 1:count)
   past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
   
   #need to loop down to minLag
-  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"))
+  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"),paste(names(new[a]), "-4"),paste(names(new[a]), "-5"),paste(names(new[a]), "-6"),paste(names(new[a]), "-7"),paste(names(new[a]), "-8"))
   names(new[a])
 
   past2=data.frame(past)
@@ -265,9 +265,9 @@ for (i in 1:count)
   
 } 
 
-print(past3)
+#print(past3)
 
-future <- stats::lag(zoo(c(new$USSTHPI)), c(1), na.pad = TRUE)
+future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
 new2=cbind(new,past3)
@@ -321,7 +321,7 @@ nrow(naRemovedBottomData)
 nrow(data.frame(naRemovedBottomFuture))
 
 #not exactly what I want, but I see how multiple regression is implemented now.
-fit <- lm(future ~ INTDSRUSM193N, data=new3)
+#fit <- lm(future ~ INTDSRUSM193N, data=new3)
 
 
 
