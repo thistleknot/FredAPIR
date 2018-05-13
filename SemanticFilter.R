@@ -332,21 +332,43 @@ f <- as.formula(paste("temp1Future$future ~", paste(n[!n %in% "y"], collapse = "
 
 #testd <- lm(as.formula(paste(f, ",", datafilename))
 
+
+#everything
+dataSet<-(tail(new3, -5))
+
 windowSize=100
 
 # # of Loops
 numLoops=nrow(tail(new3, -5))-windowSize
 
+#head prints top of dataSet
+for(i in 1:numLoops)
+{
+  trunCdataSet <- head(tail(dataSet, -5+i), windowSize)
+  #tail(dataSet$date,1)
+  print(tail(trunCdataSet$date,1))
+  
+  #print(tail(dataSet$date,1))
+}
+
+
 for(i in 1:numLoops)
 {
   print(i)
-  
   
   dataSet <- c()
   futureSet <- c()
   present <- c()
   
-  #model
+  #iterate here
+  
+    #get next row (i.e. present)
+  
+  #data model
+  #everything
+    #(tail(new3, -5))
+  
+  #data model with first windowSize # of elements
   dataSet <- head(tail(new3, -5), windowSize)
   
   #input
@@ -361,10 +383,6 @@ for(i in 1:numLoops)
   #past 4 quarters
     windowModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + SP500 + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + SP500..1 + SP500..2 + SP500..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3,  data = head(tail(new3, -5), windowSize))
   
-  #iterate here
-
-    #get next row (i.e. present)
-    testInputs <- 
     summary(testd)$adj.r.squared
     
     p2 <- plot(testd,2)
@@ -373,6 +391,9 @@ for(i in 1:numLoops)
     plot(future ~ date, data=dataSet)
     
     #fit predicted model
+    
+    #plot two graphs per model
+    #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
     lines(testd$fitted.values ~ date, data=head(tail(new3, -5), windowSize))
     
     print("Current Present")
@@ -390,7 +411,6 @@ for(i in 1:numLoops)
     predict(windowModel,futureSet,interval="predict",level=.90)
     print('99% Prediction Window Next Future')
     predict(windowModel,futureSet,interval="predict",level=.99)
-    
   
 }
 
