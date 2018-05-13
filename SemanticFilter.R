@@ -298,37 +298,66 @@ data2<-df[,c(1:ncol(df)-1)]
 
 
 #acquire # of rows
-n<-dim(df2)[1]
+#n<-dim(df2)[1]
 
 #nrow(df)
-df5<-df2[1:(n-1),]
-n<-dim(df5)[1]
-
-
-#remove first 3 rows
-N <- 3
-
-naRemovedBottomData <- tail(df5, -3)
-naRemovedBottomFuture<-c()
-
-#remove last entry
-nrow(naRemovedBottomFuture)
-nrow(naRemovedBottomData)
-
-future4<-head(future3,-1)
-naRemovedBottomFuture <- tail(future4,-3)
-
-#tail(future, -N)
-
-#nrow(df)
-
-nrow(naRemovedBottomData)
-nrow(data.frame(naRemovedBottomFuture))
 
 #not exactly what I want, but I see how multiple regression is implemented now.
-#fit <- lm(future ~ INTDSRUSM193N, data=new3)
+#rollapply()
+fit <- NULL
+
+#remove the 1st few lines due to minlag (n/a's)
+temp1Data<-head(tail(new3[1:ncol(new3)-1],-5),6)
+
+#temp1Dates<-tail(new3[1:1],-5)
+temp1Future<-head(tail(new3[ncol(new3):ncol(new3)],-5),6)
+
+nrow(temp1Data)
+nrow(temp1Future)
+
+#fit <- lm(y ~ head(temp1Future$future,6), data=head(temp1Data,6), subset=1:ncol(temp1Data))
+
+#bring in variable names
+
+n <- names(temp1Data)
+f <- as.formula(paste("temp1Future$future ~", paste(n[!n %in% "y"], collapse = " + ")))
+datafilename = " data = temp1Data"
+
+testd <- lm(as.formula(paste(f, ",", datafilename))
+            
+testd <- lm(future ~ date + A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + SP500 + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + A191RL1Q225SBEA..4 + A191RL1Q225SBEA..5 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BAA10Y..4 + BAA10Y..5 + BASE..1 + BASE..2 + BASE..3 + BASE..4 + BASE..5 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..4 + DCOILBRENTEU..5 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..4 + DCOILBRENTEU..5 + DFF..1 + DFF..2 + DFF..3 + DFF..4 + DFF..5 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + FPCPITOTLZGUSA..4 + FPCPITOTLZGUSA..5 + GS10..1 + GS10..2 + GS10..3 + GS10..4 + GS10..5 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + IC4WSA..4 + IC4WSA..5 + ICSA..1 + ICSA..2 + ICSA..3 + ICSA..4 + ICSA..5 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + INTDSRUSM193N..4 + INTDSRUSM193N..5 + MPRIME..1 + MPRIME..2 + MPRIME..3 + MPRIME..4 + MPRIME..5 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + PSAVERT..4 + PSAVERT..5 + SP500..1 + SP500..2 + SP500..3 + SP500..4 + SP500..5 + STLFSI..1 + STLFSI..2 + STLFSI..3 + STLFSI..4 + STLFSI..5 + TCU..1 + TCU..2 + TCU..3 + TCU..4 + TCU..5 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + TEDRATE..4 + TEDRATE..5 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UMCSENT..4 + UMCSENT..5 + UNRATE..1 + UNRATE..2 + UNRATE..3 + UNRATE..4 + UNRATE..5 + USSLIND..1 + USSLIND..2 + USSLIND..3 + USSLIND..4 + USSLIND..5 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3 + GOLDAMGBD228NLBM..4 + GOLDAMGBD228NLBM..5,  data = head(tail(new3, -5), 300))
+
+summary(testd)$adj.r.squared
+
+plot(testd)
+
+#prediction
+predict(testd,new3,interval="predict")
+#new3[2:5]
+
+#nrow(new3)
+
+# These are the variable names:
+
+#groupvars  <- c("x1","x2","x3,")
+
+# This creates the appropriate string:
+#paste(measurevar, paste(groupvars, collapse=" + "), datafilename)
+#> [1] "y ~ x1 + x2 + x3"
+#lm(as.formula(paste(measurevar, paste(groupvars, collapse=" + "), datafilename)))
 
 
+# This returns the formula:
+#as.formula(paste(measurevar, paste(groupvars, collapse=" + "), sep=" ~ "))
+#> y ~ x1 + x2 + x3
+#> <environment: 0x3361710>
+
+#as.formula(paste(measurevar, paste(f), sep=" ~ "))
+
+#adjusted r squared
+
+#[last] value of new3 to be predicted
+data.frame(tail(new3,1))
 
 write.csv(new3, file = "output_test.csv")
 
