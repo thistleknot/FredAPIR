@@ -25,8 +25,8 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 #note
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
-start_date="2008-05-01"
-end_date="2018-03-01"
+start_date="1990-05-01"
+end_date="2008-05-01"
 
 minLag=-5
 
@@ -111,6 +111,11 @@ print(parsedList)
 #all I need for 100% binary logistic regression success.
 #parsedList<-c("INTDSRUSM193N","VIXCLS","M1V","TCU","USSTHPI")
 
+#initial gold
+#parsedList<-c("DCOILWTICO","DGS30","T5YIE","DGS5","UMCSENT","SP500","TEDRATE","DGS1MO","T10Y2Y","M1","T5YIFR","IC4WSA","ICSA","VIXCLS","BAA10Y","BASE","DGS1","A191RL1Q225SBEA","INTDSRUSM193N","TCU","CIVPART","UNRATE","GS10","USSLIND","BAMLH0A3HYC","PSAVERT","DFF","TB3MS","T10Y3M","GOLDAMGBD228NLBM","WPU0911","RECPROUSM156N","PPIACO")
+
+#newGold
+  parsedList<-c("A191RL1Q225SBEA","BAA10Y","BASE","DCOILBRENTEU","DFF","DGS1","FPCPITOTLZGUSA","GS10","IC4WSA","ICSA","INTDSRUSM193N","MPRIME","PSAVERT","SP500","STLFSI","TCU","TEDRATE","UMCSENT","UNRATE","USSLIND","GOLDAMGBD228NLBM")
 
 print(parsedList)
 
@@ -164,7 +169,7 @@ for (i in parsedList)
   
   df2 <- df %>%
     tq_transmute(select = 2,
-                 mutate_fun = apply.weekly,
+                 mutate_fun = apply.monthly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
