@@ -354,7 +354,7 @@ for(i in 1:numLoops)
 
 for(i in 1:numLoops)
 {
-  i=1
+  #i=25
   print(i)
   
   dataSet <- c()
@@ -387,7 +387,7 @@ for(i in 1:numLoops)
   #past 4 quarters to reduce # of columns < rows
     windowModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + SP500 + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + SP500..1 + SP500..2 + SP500..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3,  data = dataSet)
   
-    summary(dataSet)$adj.r.squared
+    summary(windowModel)$adj.r.squared
     
     #p2 <- plot(testd,2)
     
@@ -398,7 +398,7 @@ for(i in 1:numLoops)
     
     #plot two graphs per model
     #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
-    lines(present$fitted.values ~ date, data=present)
+    lines(windowModel$fitted.values ~ date, data=dataSet)
     
     print("Current Present")
     present$GOLDAMGBD228NLBM
@@ -407,12 +407,12 @@ for(i in 1:numLoops)
     #predict next
     print("Next Present")
     #tail(head(tail(new3$GOLDAMGBD228NLBM, -5), windowSize+1),1)
-    future$GOLDAMGBD228NLBM
+    futureSet$GOLDAMGBD228NLBM
     print("Next Future")
     #tail(head(tail(new3$future, -5), windowSize+1),1)
-    future$future
+    futureSet$future
     print("future set date")
-    print(future$date)
+    print(futureSet$date)
     print("90% Prediction Window Next Future")
     predict(windowModel,futureSet,interval="predict",level=.90)
     print('99% Prediction Window Next Future')
