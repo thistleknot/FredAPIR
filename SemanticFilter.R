@@ -351,6 +351,12 @@ for(i in 1:numLoops)
   #print(tail(dataSet$date,1))
 }
 
+#x<-c(as.Date(min(dataSet$date)),as.Date(max(dataSet$date)))
+#y<-c(x<-c(min(dataSet$future),max(dataSet$future)))
+
+
+#plot(x ,y)
+#plot.new()
 
 for(i in 1:numLoops)
 {
@@ -392,18 +398,19 @@ for(i in 1:numLoops)
     #p2 <- plot(testd,2)
     
     #plot futures
-    plot(future ~ date, data=dataSet)
+    plot(GOLDAMGBD228NLBM ~ date, data=dataSet)
     
     #fit predicted model
     
     #plot two graphs per model
     #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
-    lines(windowModel$fitted.values ~ date, data=dataSet)
+    #lines(windowModel$fitted.values ~ date, data=dataSet)
+    points(futureSet$date, predict(windowModel,futureSet), col=254)
     
     print("Current Present")
-    present$GOLDAMGBD228NLBM
+    presentSet$GOLDAMGBD228NLBM
     print("Current Future")
-    present$future
+    presentSet$future
     #predict next
     print("Next Present")
     #tail(head(tail(new3$GOLDAMGBD228NLBM, -5), windowSize+1),1)
