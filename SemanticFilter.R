@@ -401,9 +401,9 @@ for(i in 1:numLoops)
     lines(windowModel$fitted.values ~ date, data=dataSet)
     
     print("Current Present")
-    presentSet$GOLDAMGBD228NLBM
+    present$GOLDAMGBD228NLBM
     print("Current Future")
-    presentSet$future
+    present$future
     #predict next
     print("Next Present")
     #tail(head(tail(new3$GOLDAMGBD228NLBM, -5), windowSize+1),1)
