@@ -403,8 +403,10 @@ plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops))
 #going to have to supply dates based on old records using the loop numLoops
 #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
 
-#draws next futures expected value over the existing date as opposed to the future position)
-lines(fit ~ tail(new3$date,numLoops), data=data.frame(MRpredict), col=254)
+#-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
+lines(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+lines(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
+lines(upr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=252)
 
 #as.Date(13909, origin = "1961-03-04")
 
