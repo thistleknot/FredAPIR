@@ -362,24 +362,32 @@ MRpredict <- c()
 
 for(i in 1:numLoops)
 {
+  #i=numLoops
+  wdataSet <- NULL
+  futureSet <- NULL
+  presentSet <- NULL
+  windowModel <- NULL
   #i=2
   #print(i)
 
   #iterate here
   
   #data model with first windowSize # of elements
-  wdataSet <- new3[i+4:windowSize+i,]
+  wdataSet <- new3[(i+4):(windowSize+i+4),]
+  presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
+  futureSet <- new3[(windowSize+i+5):(windowSize+i+5),]
+  #new3[(i+4):(i+5),]
   
   #wdataSet <- head(tail(new3, -4-i), windowSize)
   #print(wdataSet)
   #input
   #single last record of windowSize+1
-  futureSet <- tail(head(tail(new3, -4-i), windowSize+1),1)
+  #futureSet <- tail(head(tail(new3, -4-i), windowSize+1),1)
   
   #print(futureSet[ncol(futureSet)])
   
   #present, single last record of windowSize
-  presentSet <- tail(head(tail(new3, -4-i), windowSize),1)
+  #presentSet <- tail(head(tail(new3, -4-i), windowSize),1)
   
   #past 6 quarters
   #testd <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + SP500 + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + A191RL1Q225SBEA..4 + A191RL1Q225SBEA..5 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BAA10Y..4 + BAA10Y..5 + BASE..1 + BASE..2 + BASE..3 + BASE..4 + BASE..5 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..4 + DCOILBRENTEU..5 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..4 + DCOILBRENTEU..5 + DFF..1 + DFF..2 + DFF..3 + DFF..4 + DFF..5 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + FPCPITOTLZGUSA..4 + FPCPITOTLZGUSA..5 + GS10..1 + GS10..2 + GS10..3 + GS10..4 + GS10..5 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + IC4WSA..4 + IC4WSA..5 + ICSA..1 + ICSA..2 + ICSA..3 + ICSA..4 + ICSA..5 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + INTDSRUSM193N..4 + INTDSRUSM193N..5 + MPRIME..1 + MPRIME..2 + MPRIME..3 + MPRIME..4 + MPRIME..5 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + PSAVERT..4 + PSAVERT..5 + SP500..1 + SP500..2 + SP500..3 + SP500..4 + SP500..5 + STLFSI..1 + STLFSI..2 + STLFSI..3 + STLFSI..4 + STLFSI..5 + TCU..1 + TCU..2 + TCU..3 + TCU..4 + TCU..5 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + TEDRATE..4 + TEDRATE..5 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UMCSENT..4 + UMCSENT..5 + UNRATE..1 + UNRATE..2 + UNRATE..3 + UNRATE..4 + UNRATE..5 + USSLIND..1 + USSLIND..2 + USSLIND..3 + USSLIND..4 + USSLIND..5 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3 + GOLDAMGBD228NLBM..4 + GOLDAMGBD228NLBM..5,  data = head(tail(new3, -5), 150))
@@ -390,7 +398,7 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),as.Date(futureSet$GOLDAMGBD228NLBM),data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"current" = futureSet$GOLDAMGBD228NLBM,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
 
@@ -428,7 +436,7 @@ lines(upr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-
 #next is to build flags for binary logistic regression
 
 #[last] value of new3 to be predicted
-print("Current Date * Value")
+print("Current Date of Value")
 print(data.frame(tail(new3,1)$date))
 print("Present Value")
 print(data.frame(tail(new3,1)$GOLDAMGBD228NLBM))
