@@ -33,8 +33,11 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 #note
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
+
+windowSize=200
+
 start_date="1991-01-01"
-end_date="2008-04-30"
+end_date="2018-04-30"
 
 minLag=-5
 
@@ -312,7 +315,6 @@ future3<-df$future
 #https://stackoverflow.com/questions/10162480/copy-many-columns-from-one-data-frame-to-another
 data2<-df[,c(1:ncol(df)-1)]
 
-
 #acquire # of rows
 #n<-dim(df2)[1]
 
@@ -340,11 +342,8 @@ f <- as.formula(paste("temp1Future$future ~", paste(n[!n %in% "y"], collapse = "
 
 #testd <- lm(as.formula(paste(f, ",", datafilename))
 
-
 #everything
 dataSet<-(tail(new3, -5))
-
-windowSize=100
 
 # # of Loops
 numLoops=nrow(tail(new3, -5))-windowSize
@@ -363,14 +362,16 @@ MRpredict <- c()
 
 for(i in 1:numLoops)
 {
-  #i=25
+  #i=2
   #print(i)
 
   #iterate here
   
   #data model with first windowSize # of elements
-  wdataSet <- head(tail(new3, -4-i), windowSize)
+  wdataSet <- new3[i+4:windowSize+i,]
   
+  #wdataSet <- head(tail(new3, -4-i), windowSize)
+  #print(wdataSet)
   #input
   #single last record of windowSize+1
   futureSet <- tail(head(tail(new3, -4-i), windowSize+1),1)
@@ -389,7 +390,7 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),as.Date(futureSet$GOLDAMGBD228NLBM),data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
 
@@ -397,15 +398,20 @@ for(i in 1:numLoops)
 
 #colnames(MRpredict)<-c("dates", "fit", "lwr", "upr")
 #plot futures
-plot(GOLDAMGBD228NLBM ~ date, data=new3)
-
-plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops))
+#plot(GOLDAMGBD228NLBM ~ date, data=new3)
+plot(NULL)
+plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops-1))
 #going to have to supply dates based on old records using the loop numLoops
 #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
 
 #-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
-lines(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+#plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
 lines(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
+
+#plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+lines(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+
+#plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
 lines(upr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=252)
 
 #as.Date(13909, origin = "1961-03-04")
