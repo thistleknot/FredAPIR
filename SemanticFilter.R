@@ -359,6 +359,10 @@ numLoops=nrow(tail(new3, -5))-windowSize
 #plot(x ,y)
 #plot.new()
 
+lower <- c()
+upper <- c()
+expected <- C()
+
 for(i in 1:numLoops)
 {
   #i=25
@@ -432,7 +436,15 @@ for(i in 1:numLoops)
 #next is to build flags for binary logistic regression
 
 #[last] value of new3 to be predicted
-data.frame(tail(new3,1))
+print("Current Date * Value")
+print(data.frame(tail(new3,1)$date))
+print("Present Value")
+print(data.frame(tail(new3,1)$GOLDAMGBD228NLBM))
+print("Next Month's value")
+
+predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.99)
+predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.95)
+predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.90)
 
 write.csv(new3, file = "output_test.csv")
 
