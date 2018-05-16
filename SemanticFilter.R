@@ -398,7 +398,7 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"current" = futureSet$GOLDAMGBD228NLBM,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"future" = futureSet$GOLDAMGBD228NLBM,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
 
@@ -408,7 +408,7 @@ for(i in 1:numLoops)
 #plot futures
 #plot(GOLDAMGBD228NLBM ~ date, data=new3)
 plot(NULL)
-plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops-1))
+plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops+1))
 #going to have to supply dates based on old records using the loop numLoops
 #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
 
