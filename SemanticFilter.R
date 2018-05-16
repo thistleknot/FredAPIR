@@ -358,9 +358,8 @@ numLoops=nrow(tail(new3, -5))-windowSize
 
 #add elements http://www.dummies.com/programming/r/how-to-add-observations-to-a-data-frame-in-r/
 #date, lower, expected, upper, Adjusted R^2, CorrectDirection?
-MRpredictions <- c()
 
-MRPredict <- NULL
+MRpredict <- c()
 
 for(i in 1:numLoops)
 {
@@ -390,16 +389,24 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredictions <- rbind(MRpredict, c(data.frame(print(futureSet$date),predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
 
-
 #p2 <- plot(testd,2)
 
+#colnames(MRpredict)<-c("dates", "fit", "lwr", "upr")
 #plot futures
 plot(GOLDAMGBD228NLBM ~ date, data=new3)
-points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
+
+plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops))
+#going to have to supply dates based on old records using the loop numLoops
+#points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
+
+#draws next futures expected value over the existing date as opposed to the future position)
+lines(fit ~ tail(new3$date,numLoops), data=data.frame(MRpredict), col=254)
+
+#as.Date(13909, origin = "1961-03-04")
 
 #some reason, first value and last value are not ordered correctly.  Recommend only focussing on dates when exporting.
 
