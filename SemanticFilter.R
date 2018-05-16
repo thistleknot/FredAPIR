@@ -33,8 +33,8 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 #note
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
-start_date="1990-05-01"
-end_date="2008-05-01"
+start_date="1991-01-01"
+end_date="2008-04-30"
 
 minLag=-5
 
@@ -359,6 +359,7 @@ numLoops=nrow(tail(new3, -5))-windowSize
 #plot(x ,y)
 #plot.new()
 
+#add elements http://www.dummies.com/programming/r/how-to-add-observations-to-a-data-frame-in-r/
 lower <- c()
 upper <- c()
 expected <- C()
@@ -447,7 +448,6 @@ predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.95)
 predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.90)
 
 write.csv(new3, file = "output_test.csv")
-
 
 
 
