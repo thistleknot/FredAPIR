@@ -254,12 +254,15 @@ new <- c(data.frame(dates),data.frame(test1_z_approx))
 ncol(data.frame(new))
 
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
+#manually remove SP500
 
+#fill in na?
 count=length(parsedList)+1
 a=1
 for (i in 1:count)
 {
-  
+  #i=1
+  #a=1
   #naming
   print(i)
   print(a)
@@ -348,16 +351,6 @@ windowSize=100
 
 # # of Loops
 numLoops=nrow(tail(new3, -5))-windowSize
-
-#head prints top of dataSet
-for(i in 1:numLoops)
-{
-  trunCdataSet <- head(tail(dataSet, -5+i), windowSize)
-  #tail(dataSet$date,1)
-  print(tail(trunCdataSet$date,1))
-  
-  #print(tail(dataSet$date,1))
-}
 
 #x<-c(as.Date(min(dataSet$date)),as.Date(max(dataSet$date)))
 #y<-c(x<-c(min(dataSet$future),max(dataSet$future)))
