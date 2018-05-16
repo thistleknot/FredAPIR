@@ -141,8 +141,6 @@ data_list = lapply(parsedList, function(a)
   )
 )
 
-
-
 #print(parsedList[14])
 
 # define function to process the data
@@ -154,7 +152,6 @@ process_data = function(d, value_name) {
   names(d)[2] = value_name
   return(d)
 }
-
 
 # process the data
 data_list_processed = list()
@@ -360,26 +357,17 @@ numLoops=nrow(tail(new3, -5))-windowSize
 #plot.new()
 
 #add elements http://www.dummies.com/programming/r/how-to-add-observations-to-a-data-frame-in-r/
-lower <- c()
-upper <- c()
-expected <- C()
+#date, lower, expected, upper, Adjusted R^2, CorrectDirection?
+MRpredictions <- c()
+
+MRPredict <- NULL
 
 for(i in 1:numLoops)
 {
   #i=25
-  print(i)
-  
-  #wdataSet <- c()
-  #futureSet <- c()
-  #presentSet <- c()
-  
+  #print(i)
+
   #iterate here
-  
-  #get next row (i.e. present)
-  
-  #data model
-  #everything
-  #(tail(new3, -5))
   
   #data model with first windowSize # of elements
   wdataSet <- head(tail(new3, -4-i), windowSize)
@@ -400,39 +388,27 @@ for(i in 1:numLoops)
   #sp500 is copyrighted
   windowModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3,  data = wdataSet)
   
-  summary(windowModel)$adj.r.squared
-  
-  #p2 <- plot(testd,2)
-  
-  #plot futures
-  plot(GOLDAMGBD228NLBM ~ date, data=wdataSet)
-  
-  #fit predicted model
-  
-  #plot two graphs per model
-  #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
-  #lines(windowModel$fitted.values ~ date, data=dataSet)
-  points(futureSet$date, predict(windowModel,futureSet), col=254)
-  
-  print("Current Present")
-  presentSet$GOLDAMGBD228NLBM
-  print("Current Future")
-  presentSet$future
-  #predict next
-  print("Next Present")
-  #tail(head(tail(new3$GOLDAMGBD228NLBM, -5), windowSize+1),1)
-  futureSet$GOLDAMGBD228NLBM
-  print("Next Future")
-  #tail(head(tail(new3$future, -5), windowSize+1),1)
-  futureSet$future
-  print("future set date")
-  print(futureSet$date)
-  print("90% Prediction Window Next Future")
-  predict(windowModel,futureSet,interval="predict",level=.90)
-  print('99% Prediction Window Next Future')
-  predict(windowModel,futureSet,interval="predict",level=.99)
+  #summary(windowModel)$adj.r.squared
+
+  MRpredictions <- rbind(MRpredict, c(data.frame(print(futureSet$date),predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
+
+
+#p2 <- plot(testd,2)
+
+#plot futures
+plot(GOLDAMGBD228NLBM ~ date, data=new3)
+points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
+
+#some reason, first value and last value are not ordered correctly.  Recommend only focussing on dates when exporting.
+
+#fit predicted model
+
+#plot two graphs per model
+#https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
+#lines(windowModel$fitted.values ~ date, data=dataSet)
+#points(futureSet$date, predict(windowModel,futureSet), col=254)
 
 #next is to build flags for binary logistic regression
 
@@ -448,6 +424,7 @@ predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.95)
 predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.90)
 
 write.csv(new3, file = "output_test.csv")
+write.csv(MRpredict, file ="predictions.csv")
 
 
 
