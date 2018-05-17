@@ -398,7 +398,7 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"future" = futureSet$GOLDAMGBD228NLBM,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"future" = futureSet$future,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
   
 }
 
@@ -408,19 +408,23 @@ for(i in 1:numLoops)
 #plot futures
 #plot(GOLDAMGBD228NLBM ~ date, data=new3)
 plot(NULL)
-plot(GOLDAMGBD228NLBM ~ date, data=tail(new3,numLoops+1))
+plot(future ~ date, data=tail(new3,numLoops))
 #going to have to supply dates based on old records using the loop numLoops
 #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
 
 #-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
 #plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
-lines(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
+lines(lwr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=253)
 
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+lines(fit ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=254)
 
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(upr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=252)
+lines(upr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)
+
+tail(new3$future[],1)
+tail(MRpredict[],1)
+nrow(MRpredict)
 
 #as.Date(13909, origin = "1961-03-04")
 
