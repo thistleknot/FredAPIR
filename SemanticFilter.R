@@ -366,7 +366,7 @@ for(i in 1:numLoops)
   wdataSet <- NULL
   futureSet <- NULL
   presentSet <- NULL
-  windowModel <- NULL
+  windowMRModel <- NULL
   #i=2
   #print(i)
 
@@ -374,8 +374,11 @@ for(i in 1:numLoops)
   
   #data model with first windowSize # of elements
   wdataSet <- new3[(i+4):(windowSize+i+4),]
+  
+  #last record of wdataSet
   presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
-  futureSet <- new3[(windowSize+i+5):(windowSize+i+5),]
+  
+  #futureSet <- new3[(windowSize+i+5):(windowSize+i+5),]
   #new3[(i+4):(i+5),]
   
   #wdataSet <- head(tail(new3, -4-i), windowSize)
@@ -394,11 +397,27 @@ for(i in 1:numLoops)
   
   #past 4 quarters to reduce # of columns < rows
   #sp500 is copyrighted
-  windowModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3,  data = wdataSet)
+  windowMRModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, data = wdataSet)
+
+  #https://stackoverflow.com/questions/31824863/how-to-simply-multiply-two-columns-of-a-dataframe
+  #https://stackoverflow.com/questions/33122515/applying-if-statement-to-entire-column-in-r
+  wdataSet$LBUModel <- ifelse(with(wdataSet,(future - GOLDAMGBD228NLBM)) > 0, 1, 0)
+  
+  wdataSet$LBDModel <- ifelse(with(wdataSet,(future - GOLDAMGBD228NLBM)) < 0, 1, 0)
+  
+  wdataSet$LBSModel <- ifelse(with(wdataSet,(future - GOLDAMGBD228NLBM)) == 0, 1, 0)
+  
+  
+  #Increase
+  windowLBUModel <- glm( LBUModel ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, family=binomial(link='logit'), data = wdataSet)
+  windowLBDModel <- glm( LBDModel ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, family=binomial(link='logit'), data = wdataSet)
+  windowLBSModel <- glm( LBSModel ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + DGS1..4 + DGS1..5 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, family=binomial(link='logit'), data = wdataSet)
+  #summary(windowLBIModel)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(futureSet$date),"future" = futureSet$future,data.frame(predict(windowModel,futureSet,interval="predict",level=.90))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(presentSet$date),"present" = presentSet$GOLDAMGBD228NLBM,"future" = presentSet$future, "UpBL"=tail(windowLBUModel$fitted.values,1),"DownBL"=tail(windowLBDModel$fitted.values,1),"SameBL"=tail(windowLBSModel$fitted.values,1),data.frame(predict(windowMRModel,presentSet,interval="predict",level=.90))))
+  
   
 }
 
@@ -409,6 +428,8 @@ for(i in 1:numLoops)
 #plot(GOLDAMGBD228NLBM ~ date, data=new3)
 plot(NULL)
 plot(future ~ date, data=tail(new3,numLoops))
+lines(future ~ date, data=tail(new3,numLoops))
+
 #going to have to supply dates based on old records using the loop numLoops
 #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
 
@@ -416,8 +437,9 @@ plot(future ~ date, data=tail(new3,numLoops))
 #plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
 lines(lwr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=253)
 
+#forecasted
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(fit ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=254)
+lines(fit ~ tail(new3$date,(numLoops)), data=data.frame(tail(MRpredict,numLoops)), col=254)
 
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
 lines(upr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)
@@ -446,9 +468,9 @@ print("Present Value")
 print(data.frame(tail(new3,1)$GOLDAMGBD228NLBM))
 print("Next Month's value")
 
-predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.99)
-predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.95)
-predict(windowModel,data.frame(tail(new3,1)),interval="predict",level=.90)
+predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.90)
+predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.95)
+predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
 
 write.csv(new3, file = "output_test.csv")
 write.csv(MRpredict, file ="predictions.csv")
