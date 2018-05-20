@@ -376,9 +376,10 @@ for(i in 1:numLoops)
   wdataSet <- new3[(i+4):(windowSize+i+4),]
   
   #last record of wdataSet
-  presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
+  #presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
   
-  #futureSet <- new3[(windowSize+i+5):(windowSize+i+5),]
+  presentSet <- new3[(windowSize+i+5):(windowSize+i+5),]
+  
   #new3[(i+4):(i+5),]
   
   #wdataSet <- head(tail(new3, -4-i), windowSize)
@@ -468,9 +469,10 @@ print("Present Value")
 print(data.frame(tail(new3,1)$GOLDAMGBD228NLBM))
 print("Next Month's value")
 
-predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.90)
-predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.95)
-predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
+#predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.90)
+#predict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.95)
+#spredict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
+
 
 write.csv(new3, file = "output_test.csv")
 write.csv(MRpredict, file ="predictions.csv")
