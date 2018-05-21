@@ -7,6 +7,7 @@ install.packages("zoo", restart=TRUE)
 install.packages("xts")
 install.packages("tidyquant")
 install.packages("gridExtra")
+install.packages("magrittr")
 
 library(data.table)
 library(xts)
@@ -14,6 +15,7 @@ library(tidyquant)
 library(zoo)
 library(pipeR)
 library(dplyr)
+library(magrittr)
 
 #ggplots
 library(ggplot2)
@@ -25,6 +27,9 @@ library(lattice)
 require(ggplot2)
 require(gridExtra)
 require(zoo)
+
+
+
 
 
 api.key = '661c0a90e914477da5a7518293de5f8e'
