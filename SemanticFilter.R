@@ -32,7 +32,6 @@ require(zoo)
 
 api.key <- read_file("apiKey.txt")
 
-#'661c0a90e914477da5a7518293de5f8e'
 fred <- FredR::FredR(api.key)
 
 #note
