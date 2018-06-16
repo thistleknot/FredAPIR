@@ -28,10 +28,6 @@ require(ggplot2)
 require(gridExtra)
 require(zoo)
 
-
-
-
-
 api.key = '661c0a90e914477da5a7518293de5f8e'
 fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 
@@ -39,7 +35,7 @@ fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
 
-windowSize=200
+windowSize=100
 
 start_date="1991-01-01"
 end_date="2018-04-30"
@@ -421,7 +417,7 @@ for(i in 1:numLoops)
   
   #summary(windowModel)$adj.r.squared
 
-  MRpredict <- rbind(MRpredict, c("date" = as.Date(presentSet$date),"present" = presentSet$GOLDAMGBD228NLBM,"future" = presentSet$future, "UpBL"=predict(windowLBUModel,presentSet,type="response"),"DownBL"=predict(windowLBDModel,presentSet,type="response"),"SameBL"=predict(windowLBSModel,presentSet,type="response"),data.frame(predict(windowMRModel,presentSet,interval="predict",level=.99))))
+  MRpredict <- rbind(MRpredict, c("date" = as.Date(presentSet$date),"present" = presentSet$GOLDAMGBD228NLBM,"future" = presentSet$future, "UpBL"=predict(windowLBUModel,presentSet,type="response"),"DownBL"=predict(windowLBDModel,presentSet,type="response"),"SameBL"=predict(windowLBSModel,presentSet,type="response"),data.frame(predict(windowMRModel,presentSet,interval="predict",level=.95))))
   
   #https://www.tatvic.com/blog/logistic-regression-with-r/
   #predict(Model_1,in_frame, type="response")
