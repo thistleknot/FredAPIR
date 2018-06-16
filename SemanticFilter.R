@@ -28,8 +28,10 @@ require(ggplot2)
 require(gridExtra)
 require(zoo)
 
-api.key = '661c0a90e914477da5a7518293de5f8e'
-fred <- FredR::FredR(api.key= '661c0a90e914477da5a7518293de5f8e')
+api.key <- read_file("apiKey.txt")
+
+#'661c0a90e914477da5a7518293de5f8e'
+fred <- FredR::FredR(api.key= 'api.key')
 
 #note
 #switched housing index to USSTHPI which goes back to 1980!
