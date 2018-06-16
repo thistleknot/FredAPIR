@@ -8,6 +8,7 @@ install.packages("xts")
 install.packages("tidyquant")
 install.packages("gridExtra")
 install.packages("magrittr")
+install.packages("readr") # you only need to do this one time on your system
 
 library(data.table)
 library(xts)
@@ -23,6 +24,7 @@ library(gridExtra)
 #library(grid)
 library(ggplot2)
 library(lattice)
+library(readr)
 
 require(ggplot2)
 require(gridExtra)
@@ -31,7 +33,7 @@ require(zoo)
 api.key <- read_file("apiKey.txt")
 
 #'661c0a90e914477da5a7518293de5f8e'
-fred <- FredR::FredR(api.key= 'api.key')
+fred <- FredR::FredR(api.key)
 
 #note
 #switched housing index to USSTHPI which goes back to 1980!
