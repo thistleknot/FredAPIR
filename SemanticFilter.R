@@ -3,12 +3,12 @@
 
 devtools::install_github("jcizel/FredR")
 
-install.packages("zoo", restart=TRUE)
-install.packages("xts")
-install.packages("tidyquant")
-install.packages("gridExtra")
-install.packages("magrittr")
-install.packages("readr") # you only need to do this one time on your system
+#install.packages("zoo", restart=TRUE)
+#install.packages("xts")
+#install.packages("tidyquant")
+#install.packages("gridExtra")
+#install.packages("magrittr")
+#install.packages("readr") # you only need to do this one time on your system
 
 library(data.table)
 library(xts)
