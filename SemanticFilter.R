@@ -376,10 +376,42 @@ for(i in 1:numLoops)
   #print(i)
 
   #iterate here
+  #ncol(wdataSet)
+  
+  lrAnalysis <- c()
+
+  
+  
+
+  #log normalize rest
+  #lrAnalysis <- c(lrAnalysis,,drop=F)
+  
+  #proper date
+  #log(as.numeric(new3[,1]))
+  
+  #View(lrAnalysis)
+  
+  #View(wdataSet)
+  
+  
+  #View(lrAnalysis)
   
   #data model with first windowSize # of elements
-  wdataSet <- new3[(i+4):(windowSize+i+4),]
+  wdataSet <- new3[(i+4):(windowSize+i+4)]
   
+  #wdataSet[is.na(wdataSet)] <- 0
+  
+  
+  
+  lrAnalysis <- log(wdataSet[2:(ncol(wdataSet)-4)])
+  
+  #remove columns that are all na
+  lrAnalysis <- lrAnalysis[,colSums(is.na(lrAnalysis))<nrow(lrAnalysis)]
+  
+  lrAnalysis[is.na(lrAnalysis)] <- 0
+  #still has lnf
+  View(lrAnalysis)
+  myPCA <- prcomp(data.frame(lrAnalysis), scale. = T, center = T)
   #last record of wdataSet
   #presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
   
