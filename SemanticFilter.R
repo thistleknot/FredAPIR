@@ -432,23 +432,35 @@ for(i in 1:numLoops)
   
   #windowMRModel$fitted.values
   
+  #plot(NULL)
+  #plot(future ~ date, data=tail(new3,numLoops))
+  #lines(future ~ date, data=tail(new3,numLoops))
+  
+  #going to have to supply dates based on old records using the loop numLoops
+  #points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
+  #ncol(MRpredict)
+  #-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
+  #plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
+  #not column, but color!
+
+  plot(lwr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=253)
+  
+  #forecasted
+  #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+  plot(fit ~ tail(new3$date,(i)), data=data.frame(tail(MRpredict,i)), col=254)
+  
+  #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
+  plot(upr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=252)    
   
 }
-
+#ncol(new3[312])
 #p2 <- plot(testd,2)
+#colnames(new3[312])
 
 #colnames(MRpredict)<-c("dates", "fit", "lwr", "upr")
 #plot futures
 #plot(GOLDAMGBD228NLBM ~ date, data=new3)
-plot(NULL)
-plot(future ~ date, data=tail(new3,numLoops))
-lines(future ~ date, data=tail(new3,numLoops))
 
-#going to have to supply dates based on old records using the loop numLoops
-#points(fit ~ print.futureSet.date., data=data.frame(MRpredict), col=254)
-
-#-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
-#plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
 lines(lwr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=253)
 
 #forecasted
@@ -456,7 +468,7 @@ lines(lwr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)),
 lines(fit ~ tail(new3$date,(numLoops)), data=data.frame(tail(MRpredict,numLoops)), col=254)
 
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(upr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)
+lines(upr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)  
 
 tail(new3$future[],1)
 tail(MRpredict[],1)
@@ -470,8 +482,8 @@ nrow(MRpredict)
 
 #plot two graphs per model
 #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
-#lines(windowModel$fitted.values ~ date, data=dataSet)
-#points(futureSet$date, predict(windowModel,futureSet), col=254)
+lines(windowModel$fitted.values ~ date, data=dataSet)
+points(futureSet$date, predict(windowModel,futureSet), col=254)
 
 #next is to build flags for binary logistic regression
 
