@@ -25,6 +25,13 @@ library(gridExtra)
 library(ggplot2)
 library(lattice)
 library(readr)
+library("FactoMineR")
+library("devtools")
+library("factoextra")
+install_github("kassambara/factoextra")
+library("factoextra")
+library("corrplot")
+library("PerformanceAnalytics")
 
 require(ggplot2)
 require(gridExtra)
@@ -349,6 +356,7 @@ f <- as.formula(paste("temp1Future$future ~", paste(n[!n %in% "y"], collapse = "
 
 #everything
 dataSet<-(tail(new3, -5))
+#ncol(dataSet)
 
 # # of Loops
 numLoops=nrow(tail(new3, -5))-windowSize
@@ -377,51 +385,20 @@ for(i in 1:numLoops)
 
   #iterate here
   #ncol(wdataSet)
+ 
+ #log normalizes 0's to "-lnf" and breaks pca
   
-  lrAnalysis <- c()
-
+  #need all columns for correlation analysis of last var.
+  wdataSet <- (cbind(as.numeric(new3[(i+5):(windowSize+i+5),1]),new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
   
-  
-
-  #log normalize rest
-  #lrAnalysis <- c(lrAnalysis,,drop=F)
-  
-  #proper date
-    #View(scale(as.numeric(new3[(i+4):(windowSize+i+4),1])))
-  
-  #View(lrAnalysis)
-  
-  #View(wdataSet)
-  
-  
-  #View(lrAnalysis)
-  
-  #moving window
-  #data model with first windowSize # of elements
-  
-  ncol(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])))
-  
-  ncol(scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
-  
-  ncol(cbind(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])),scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
-  
-  wdataSet <- (cbind((as.numeric(new3[(i+5):(windowSize+i+5),1])),(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
-  swdataSet <- scale(wdataSet)
   #nrow(wdataSet)
-  #View(wdataSet)
-  #colnames(wdataSet)
-  ncol(wdataSet)
+  View(wdataSet)
   
+  colnames (wdataSet)[1] <- c("date")
+  colnames(wdataSet)
   
-    #exclude date and future
-    #View(scale(wdataSet[2:(ncol(wdataSet)-1)]))
-  
-  #wdataSet[is.na(wdataSet)] <- 0
-  
-  #lrAnalysis <- scale(wdataSet[2:(ncol(wdataSet)-4)])
-  #View(new3)
-  #View(lrAnalysis)
-  
+  swdataSet <- scale(wdataSet)
+
   #remove columns that are all na
   wdataSet <- wdataSet[,colSums(is.na(wdataSet))<nrow(wdataSet)]
   ncol(wdataSet)
@@ -431,11 +408,61 @@ for(i in 1:numLoops)
   
   #since reduced by scaling, need to reduce wdataSet
   wdataSet <- wdataSet[colnames(swdataSet)]
+
+  #cor(swdataSet)
+  #matrix compared against future
+  cor.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)]),4)
+  
+  #squared
+  corS.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)])^2,4)
+  
+  View(corS.mat)
+  
+  rownames(corS.mat)
+  
+  rownames(corS.mat[which(corS.mat>=.33),,drop=F])
+  
+  #transpose to be able to filter by column names
+  fcor.mat <- as.matrix(t(cor.mat)[,rownames(corS.mat[which(cor.mat^2>=.33),,drop=F])])
+  
+  
+  #corSF.mat <- corS.mat[which()]
+  #corSF.mat <- corS.mat[which(cor.mat>=.33),,drop=F]
+  write.csv(fcor.mat,"corMat.csv")
+  
+  
+  #plot(cor.mat)
+  
+  
+  jpeg(paste0(end_date,"corrPlot1.jpg"))
+  #rownames(corS.mat[which(cor.mat>=.33),,drop=F])
+  #corS.mat[c(rownames(corS.mat[which(cor.mat>=.33),,drop=F]))]
+  
+  #table(is.na(swdataSet))
+  
+  
+  #rownames(corS.mat[which(corS.mat>=.33),,drop=F])
+  #swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]
+  chart.Correlation(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])], histogram=TRUE, pch=19)
+
+  dev.off()
+  
+  jpeg(paste0(end_date,"corrPlot2.jpg"))
+  
+  #correlation matrix of filtered sqared correlations
+  corrplot(cor(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]),tl.cex=.4)
+  
+  #chart.Correlation(cor.mat, histogram=TRUE, pch=19)
+  dev.off()
+  
   #lrAnalysis[is.na(lrAnalysis)] <- .001
   #still has lnf
   #View(lrAnalysis)
   #View(wdataSet)
   myPCA <- prcomp(data.frame(swdataSet), scale = F, center = F)
+  summary(myPCA)
+  View(cor.mat)
+  
   plot(myPCA, type = "l")
   #pcaCharts(myPCA)
   #last record of wdataSet
