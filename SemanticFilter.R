@@ -387,7 +387,7 @@ for(i in 1:numLoops)
   #lrAnalysis <- c(lrAnalysis,,drop=F)
   
   #proper date
-  #log(as.numeric(new3[,1]))
+    #View(scale(as.numeric(new3[(i+4):(windowSize+i+4),1])))
   
   #View(lrAnalysis)
   
@@ -396,22 +396,39 @@ for(i in 1:numLoops)
   
   #View(lrAnalysis)
   
+  #moving window
   #data model with first windowSize # of elements
-  wdataSet <- new3[(i+4):(windowSize+i+4)]
+  
+  ncol(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])))
+  
+  ncol(scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
+  
+  ncol(cbind(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])),scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
+  wdataSet <- (cbind(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])),scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
+  #nrow(wdataSet)
+  #View(wdataSet)
+  #colnames(wdataSet)
+  ncol(wdataSet)
+  
+  
+    #exclude date and future
+    #View(scale(wdataSet[2:(ncol(wdataSet)-1)]))
   
   #wdataSet[is.na(wdataSet)] <- 0
   
-  
-  
-  lrAnalysis <- log(wdataSet[2:(ncol(wdataSet)-4)])
+  #lrAnalysis <- scale(wdataSet[2:(ncol(wdataSet)-4)])
+  #View(new3)
+  #View(lrAnalysis)
   
   #remove columns that are all na
-  lrAnalysis <- lrAnalysis[,colSums(is.na(lrAnalysis))<nrow(lrAnalysis)]
+  wdataSet <- wdataSet[,colSums(is.na(wdataSet))<nrow(wdataSet)]
+  ncol(wdataSet)
   
-  lrAnalysis[is.na(lrAnalysis)] <- 0
+  #lrAnalysis[is.na(lrAnalysis)] <- .001
   #still has lnf
-  View(lrAnalysis)
-  myPCA <- prcomp(data.frame(lrAnalysis), scale. = T, center = T)
+  #View(lrAnalysis)
+  View(wdataSet)
+  myPCA <- prcomp(data.frame(wdataSet), scale = F, center = F)
   #last record of wdataSet
   #presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
   
