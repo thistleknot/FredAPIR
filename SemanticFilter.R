@@ -404,7 +404,9 @@ for(i in 1:numLoops)
   ncol(scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
   
   ncol(cbind(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])),scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
-  wdataSet <- (cbind(scale(as.numeric(new3[(i+5):(windowSize+i+5),1])),scale(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
+  
+  wdataSet <- (cbind((as.numeric(new3[(i+5):(windowSize+i+5),1])),(new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)])))
+  swdataSet <- scale(wdataSet)
   #nrow(wdataSet)
   #View(wdataSet)
   #colnames(wdataSet)
@@ -424,11 +426,18 @@ for(i in 1:numLoops)
   wdataSet <- wdataSet[,colSums(is.na(wdataSet))<nrow(wdataSet)]
   ncol(wdataSet)
   
+  swdataSet <- swdataSet[,colSums(is.na(swdataSet))<nrow(swdataSet)]
+  ncol(swdataSet)
+  
+  #since reduced by scaling, need to reduce wdataSet
+  wdataSet <- wdataSet[colnames(swdataSet)]
   #lrAnalysis[is.na(lrAnalysis)] <- .001
   #still has lnf
   #View(lrAnalysis)
-  View(wdataSet)
-  myPCA <- prcomp(data.frame(wdataSet), scale = F, center = F)
+  #View(wdataSet)
+  myPCA <- prcomp(data.frame(swdataSet), scale = F, center = F)
+  plot(myPCA, type = "l")
+  #pcaCharts(myPCA)
   #last record of wdataSet
   #presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
   
