@@ -450,7 +450,7 @@ for(i in 1:numLoops)
   jpeg(paste0(end_date,"corrPlot2.jpg"))
   
   #correlation matrix of filtered sqared correlations
-  corrplot(cor(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]),tl.cex=.4)
+  corrplot(cor(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]),type="upper", order="hclust", tl.col="black", tl.srt=45,tl.cex=.4)
   
   #chart.Correlation(cor.mat, histogram=TRUE, pch=19)
   dev.off()
