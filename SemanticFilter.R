@@ -316,9 +316,11 @@ new3=cbind(new2,future2)
 
 #linear model
 #remove last future value
+
+# # of elements
 n<-dim(df)[1]
 
-#nrow(df)
+#nrow(df), all but last row (this is offsetting)
 df<-df[1:(n-1),]
 
 future3<-df$future
@@ -389,10 +391,13 @@ for(i in 1:numLoops)
  #log normalizes 0's to "-lnf" and breaks pca
   
   #need all columns for correlation analysis of last var.
+  #wdataSet = all data, not jjust specific window?
+  
+  future <- new3[(i+5):(windowSize+i+5),ncol(new3)]
   wdataSet <- (cbind(as.numeric(new3[(i+5):(windowSize+i+5),1]),new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
   
   #nrow(wdataSet)
-  View(wdataSet)
+  #View(wdataSet)
   
   colnames (wdataSet)[1] <- c("date")
   colnames(wdataSet)
@@ -416,7 +421,7 @@ for(i in 1:numLoops)
   #squared
   corS.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)])^2,4)
   
-  View(corS.mat)
+  #View(corS.mat)
   
   rownames(corS.mat)
   
@@ -425,45 +430,26 @@ for(i in 1:numLoops)
   #transpose to be able to filter by column names
   fcor.mat <- as.matrix(t(cor.mat)[,rownames(corS.mat[which(cor.mat^2>=.33),,drop=F])])
   
-  
-  #corSF.mat <- corS.mat[which()]
-  #corSF.mat <- corS.mat[which(cor.mat>=.33),,drop=F]
-  write.csv(fcor.mat,"corMat.csv")
-  
-  
-  #plot(cor.mat)
-  
-  
-  jpeg(paste0(end_date,"corrPlot1.jpg"))
-  #rownames(corS.mat[which(cor.mat>=.33),,drop=F])
-  #corS.mat[c(rownames(corS.mat[which(cor.mat>=.33),,drop=F]))]
-  
-  #table(is.na(swdataSet))
-  
-  
-  #rownames(corS.mat[which(corS.mat>=.33),,drop=F])
-  #swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]
-  chart.Correlation(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])], histogram=TRUE, pch=19)
+  #write.csv(fcor.mat,"corMat.csv")
 
-  dev.off()
+  #jpeg(paste0(end_date,"corrPlot1.jpg"))
+  #chart.Correlation(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])], histogram=TRUE, pch=19)
+
+  #dev.off()
   
-  jpeg(paste0(end_date,"corrPlot2.jpg"))
+  #jpeg(paste0(end_date,"corrPlot2.jpg"))
   
   #correlation matrix of filtered sqared correlations
-  corrplot(cor(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]),type="upper", order="hclust", tl.col="black", tl.srt=45,tl.cex=.4)
+  #corrplot(cor(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])]),type="upper", order="hclust", tl.col="black", tl.srt=45,tl.cex=.4)
   
   #chart.Correlation(cor.mat, histogram=TRUE, pch=19)
-  dev.off()
-  
-  #lrAnalysis[is.na(lrAnalysis)] <- .001
-  #still has lnf
-  #View(lrAnalysis)
-  #View(wdataSet)
+  #dev.off()
+
   myPCA <- prcomp(data.frame(swdataSet), scale = F, center = F)
   summary(myPCA)
-  View(cor.mat)
+  #View(cor.mat)
   
-  plot(myPCA, type = "l")
+  #plot(myPCA, type = "l")
   #pcaCharts(myPCA)
   #last record of wdataSet
   #presentSet <- new3[(windowSize+i+4):(windowSize+i+4),]
@@ -490,7 +476,10 @@ for(i in 1:numLoops)
   
   #past 4 quarters to reduce # of columns < rows
   #sp500 is copyrighted
-  windowMRModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, data = wdataSet)
+
+  #new3 or wdataSet? wdataSet was reduced to a window, but future was not, which is weird.
+  
+  windowMRModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, data = data.frame(wdataSet))
 
   #https://stackoverflow.com/questions/31824863/how-to-simply-multiply-two-columns-of-a-dataframe
   #https://stackoverflow.com/questions/33122515/applying-if-statement-to-entire-column-in-r
@@ -514,7 +503,6 @@ for(i in 1:numLoops)
   #predict(Model_1,in_frame, type="response")
   #predict(windowLBUModel,presentSet,type="response")
   
-  
   #windowMRModel$fitted.values
   
   #plot(NULL)
@@ -528,14 +516,14 @@ for(i in 1:numLoops)
   #plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
   #not column, but color!
 
-  plot(lwr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=253)
+  #plot(lwr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=253)
   
   #forecasted
   #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-  plot(fit ~ tail(new3$date,(i)), data=data.frame(tail(MRpredict,i)), col=254)
+  #plot(fit ~ tail(new3$date,(i)), data=data.frame(tail(MRpredict,i)), col=254)
   
   #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-  plot(upr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=252)    
+  #plot(upr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=252)    
   
 }
 #ncol(new3[312])
@@ -546,14 +534,14 @@ for(i in 1:numLoops)
 #plot futures
 #plot(GOLDAMGBD228NLBM ~ date, data=new3)
 
-lines(lwr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=253)
+lines(lwr ~ tail(new3$date[6:ncol(new3)],numLoops), data=data.frame(tail(MRpredict,numLoops)), col=253)
 
 #forecasted
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(fit ~ tail(new3$date,(numLoops)), data=data.frame(tail(MRpredict,numLoops)), col=254)
+lines(fit ~ tail(new3$date[6:ncol(new3)],(numLoops)), data=data.frame(tail(MRpredict,numLoops)), col=254)
 
 #plot(fit ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=254)
-lines(upr ~ tail(new3$date,numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)  
+lines(upr ~ tail(new3$date[6:ncol(new3)],numLoops), data=data.frame(tail(MRpredict,numLoops)), col=252)  
 
 tail(new3$future[],1)
 tail(MRpredict[],1)
@@ -567,8 +555,8 @@ nrow(MRpredict)
 
 #plot two graphs per model
 #https://stackoverflow.com/questions/2564258/plot-two-graphs-in-same-plot-in-r
-lines(windowModel$fitted.values ~ date, data=dataSet)
-points(futureSet$date, predict(windowModel,futureSet), col=254)
+#lines(windowModel$fitted.values ~ date, data=dataSet)
+#points(futureSet$date, predict(windowModel,futureSet), col=254)
 
 #next is to build flags for binary logistic regression
 
