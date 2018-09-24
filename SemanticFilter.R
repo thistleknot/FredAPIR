@@ -416,13 +416,21 @@ for(i in 1:numLoops)
   wdataSet <- wdataSet[colnames(swdataSet)]
 
   #correlation matrix of just high level #'s
-  cor(swdataSet[,parsedList[1:(length(parsedList)-1)]],swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F])
+  
   #matrix compared against future
   
-  cor.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)]),4)
+  cor.mat <- cor(swdataSet[,parsedList[1:(length(parsedList)-1)]],swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F])
+  
+  #http://r.789695.n4.nabble.com/apply-lm-for-all-the-columns-of-a-matrix-td855587.html
+  linearModels <- lm(formula = as.matrix(swdataSet[,parsedList[1:(length(parsedList)-1)]]) ~ swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F]) 
+  #View(linearModels)
+  #View(summary(linearModels))
+  
   
   #squared
-  corS.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)])^2,4)
+  #corS.mat <- round(cor(swdataSet,new3[(i+5):(windowSize+i+5),ncol(new3)])^2,4)
+  
+  #corS.mat
   
   #View(corS.mat)
   
