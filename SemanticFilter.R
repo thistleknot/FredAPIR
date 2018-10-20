@@ -431,6 +431,11 @@ for(i in 1:numLoops)
   
   #http://r.789695.n4.nabble.com/apply-lm-for-all-the-columns-of-a-matrix-td855587.html
   linearModels <- lm(formula = as.matrix(swdataSet[,parsedList[1:(length(parsedList)-1)]]) ~ swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F]) 
+  
+  test <- (summary(linearModels))
+  test$`Response CPIAUCSL`$coefficients
+  
+  #test``$coefficients
   #View(linearModels)
   #View(summary(linearModels))
   
