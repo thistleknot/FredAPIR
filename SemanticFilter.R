@@ -85,7 +85,6 @@ for (i in semanticList)
     
     #https://stackoverflow.com/questions/2288485/how-to-convert-a-data-frame-column-to-numeric-type
     #if((semantic$popularity[count])>77)
-
     if((as.numeric(as.character(semantic$popularity[count])))>semanticScore)
     {
       {
@@ -112,9 +111,8 @@ for (i in semanticList)
   
 }
 
-#doing gold atm
-parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB')
-#parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
+parsedList<-unique(names)
+parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
 print(parsedList)
 #Sorted by importance
@@ -305,17 +303,12 @@ for (i in 1:count)
 
 #print(past3)
 
-#y SPCS20RSA
-#set future here (y)
-future <- stats::lag(zoo(c(new$SPCS20RSA)), c(1), na.pad = TRUE)
-#future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
+future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
 new2=cbind(new,past3)
-#bug here
+
 new3=cbind(new2,future2)
-#fixed
-#new3=cbind(new2,future)
 
 #https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
 #https://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
@@ -382,7 +375,6 @@ numLoops=nrow(tail(new3, -5))-windowSize
 
 MRpredict <- c()
 
-#forced model
 for(i in 1:numLoops)
 {
   #i=numLoops
