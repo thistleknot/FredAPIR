@@ -314,9 +314,9 @@ future <- stats::lag(zoo(c(new$USSTHPI)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
 new2=cbind(new,past3)
-
-new3=cbind(new2,future2)
 #bug here
+#new3=cbind(new2,future2)
+#fixed
 new3=cbind(new2,future)
 
 #https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
