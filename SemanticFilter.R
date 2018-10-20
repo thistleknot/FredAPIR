@@ -37,9 +37,10 @@ require(ggplot2)
 require(gridExtra)
 require(zoo)
 
-api.key <- read_file("C:/Users/user/Documents/AlphaAdvantageAPI/FredAPIR/apiKey.txt")
 
-fred <- FredR::FredR(api.key)
+api.key <- read_file("/home/rstudio/FredAPIR/apiKey.txt")
+
+fred <- FredR::FredR("661c0a90e914477da5a7518293de5f8e")
 
 #note
 #switched housing index to USSTHPI which goes back to 1980!
@@ -85,6 +86,7 @@ for (i in semanticList)
     
     #https://stackoverflow.com/questions/2288485/how-to-convert-a-data-frame-column-to-numeric-type
     #if((semantic$popularity[count])>77)
+    
     if((as.numeric(as.character(semantic$popularity[count])))>semanticScore)
     {
       {
@@ -111,8 +113,9 @@ for (i in semanticList)
   
 }
 
-parsedList<-unique(names)
-parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
+#doing gold atm
+parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB')
+#parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
 print(parsedList)
 #Sorted by importance
@@ -303,12 +306,18 @@ for (i in 1:count)
 
 #print(past3)
 
-future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
+#y SPCS20RSA
+#set future here (y)
+#set future to USSTHPI
+future <- stats::lag(zoo(c(new$USSTHPI)), c(1), na.pad = TRUE)
+#future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
 new2=cbind(new,past3)
 
 new3=cbind(new2,future2)
+#bug here
+new3=cbind(new2,future)
 
 #https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
 #https://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
@@ -346,7 +355,7 @@ temp1Future<-head(tail(new3[ncol(new3):ncol(new3)],-5),6)
 nrow(temp1Data)
 nrow(temp1Future)
 
-#fit <- lm(y ~ head(temp1Future$future,6), data=head(temp1Data,6), subset=1:ncol(temp1Data))
+fit <- lm(y ~ head(temp1Future$future,6), data=head(temp1Data,6), subset=1:ncol(temp1Data))
 
 #bring in variable names
 
@@ -375,6 +384,7 @@ numLoops=nrow(tail(new3, -5))-windowSize
 
 MRpredict <- c()
 
+#forced model
 for(i in 1:numLoops)
 {
   #i=numLoops
@@ -384,11 +394,11 @@ for(i in 1:numLoops)
   windowMRModel <- NULL
   #i=2
   #print(i)
-
+  
   #iterate here
   #ncol(wdataSet)
- 
- #log normalizes 0's to "-lnf" and breaks pca
+  
+  #log normalizes 0's to "-lnf" and breaks pca
   
   #need all columns for correlation analysis of last var.
   #wdataSet = all data, not jjust specific window?
@@ -404,7 +414,7 @@ for(i in 1:numLoops)
   
   #scaled
   swdataSet <- scale(wdataSet)
-
+  
   #remove columns that are all na
   wdataSet <- wdataSet[,colSums(is.na(wdataSet))<nrow(wdataSet)]
   ncol(wdataSet)
@@ -414,15 +424,21 @@ for(i in 1:numLoops)
   
   #since reduced by scaling, need to reduce wdataSet
   wdataSet <- wdataSet[colnames(swdataSet)]
-
+  
   #correlation matrix of just high level #'s
   
   #matrix compared against future
   
+  View(colnames(swdataSet))
   cor.mat <- cor(swdataSet[,parsedList[1:(length(parsedList)-1)]],swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F])
   
   #http://r.789695.n4.nabble.com/apply-lm-for-all-the-columns-of-a-matrix-td855587.html
   linearModels <- lm(formula = as.matrix(swdataSet[,parsedList[1:(length(parsedList)-1)]]) ~ swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F]) 
+  
+  test <- (summary(linearModels))
+  test$`Response CPIAUCSL`$coefficients
+  
+  #test``$coefficients
   #View(linearModels)
   #View(summary(linearModels))
   
@@ -442,10 +458,10 @@ for(i in 1:numLoops)
   fcor.mat <- as.matrix(t(cor.mat)[,rownames(corS.mat[which(cor.mat^2>=.33),,drop=F])])
   
   #write.csv(fcor.mat,"corMat.csv")
-
+  
   #jpeg(paste0(end_date,"corrPlot1.jpg"))
   #chart.Correlation(swdataSet[,rownames(corS.mat[which(corS.mat>=.33),,drop=F])], histogram=TRUE, pch=19)
-
+  
   #dev.off()
   
   #jpeg(paste0(end_date,"corrPlot2.jpg"))
@@ -455,7 +471,7 @@ for(i in 1:numLoops)
   
   #chart.Correlation(cor.mat, histogram=TRUE, pch=19)
   #dev.off()
-
+  
   myPCA <- prcomp(data.frame(swdataSet), scale = F, center = F)
   summary(myPCA)
   #View(cor.mat)
@@ -488,14 +504,14 @@ for(i in 1:numLoops)
   
   #past 4 quarters to reduce # of columns < rows
   #sp500 is copyrighted
-
+  
   #new3 or wdataSet? wdataSet was reduced to a window, but future was not, which is weird.
   
   windowMRModel <- lm(future ~ A191RL1Q225SBEA + BAA10Y + BASE + DCOILBRENTEU + DFF + DGS1 + FPCPITOTLZGUSA + GS10 + IC4WSA + ICSA + INTDSRUSM193N + MPRIME + PSAVERT + STLFSI + TCU + TEDRATE + UMCSENT + UNRATE + USSLIND + GOLDAMGBD228NLBM + A191RL1Q225SBEA..1 + A191RL1Q225SBEA..2 + A191RL1Q225SBEA..3 + BAA10Y..1 + BAA10Y..2 + BAA10Y..3 + BASE..1 + BASE..2 + BASE..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DCOILBRENTEU..1 + DCOILBRENTEU..2 + DCOILBRENTEU..3 + DFF..1 + DFF..2 + DFF..3 + DGS1..1 + DGS1..2 + DGS1..3 + FPCPITOTLZGUSA..1 + FPCPITOTLZGUSA..2 + FPCPITOTLZGUSA..3 + GS10..1 + GS10..2 + GS10..3 + IC4WSA..1 + IC4WSA..2 + IC4WSA..3 + ICSA..1 + ICSA..2 + ICSA..3 + INTDSRUSM193N..1 + INTDSRUSM193N..2 + INTDSRUSM193N..3 + MPRIME..1 + MPRIME..2 + MPRIME..3 + PSAVERT..1 + PSAVERT..2 + PSAVERT..3 + STLFSI..1 + STLFSI..2 + STLFSI..3 + TCU..1 + TCU..2 + TCU..3 + TEDRATE..1 + TEDRATE..2 + TEDRATE..3 + UMCSENT..1 + UMCSENT..2 + UMCSENT..3 + UNRATE..1 + UNRATE..2 + UNRATE..3 + USSLIND..1 + USSLIND..2 + USSLIND..3 + GOLDAMGBD228NLBM..1 + GOLDAMGBD228NLBM..2 + GOLDAMGBD228NLBM..3, data = data.frame(wdataSet))
-
+  
   #https://stackoverflow.com/questions/31824863/how-to-simply-multiply-two-columns-of-a-dataframe
   #https://stackoverflow.com/questions/33122515/applying-if-statement-to-entire-column-in-r
-
+  
   #[U]p, [D]own, [S]ame Training Data
   wdataSet$LBUModel <- ifelse(with(wdataSet,(future - GOLDAMGBD228NLBM)) > 0, 1, 0)
   wdataSet$LBDModel <- ifelse(with(wdataSet,(future - GOLDAMGBD228NLBM)) < 0, 1, 0)
@@ -508,7 +524,7 @@ for(i in 1:numLoops)
   #summary(windowLBIModel)
   
   #summary(windowModel)$adj.r.squared
-
+  
   MRpredict <- rbind(MRpredict, c("date" = as.Date(presentSet$date),"present" = presentSet$GOLDAMGBD228NLBM,"future" = presentSet$future, "UpBL"=predict(windowLBUModel,presentSet,type="response"),"DownBL"=predict(windowLBDModel,presentSet,type="response"),"SameBL"=predict(windowLBSModel,presentSet,type="response"),data.frame(predict(windowMRModel,presentSet,interval="predict",level=.95))))
   
   #https://www.tatvic.com/blog/logistic-regression-with-r/
@@ -527,7 +543,7 @@ for(i in 1:numLoops)
   #-1 pushes the records forward by 1 date to map the future expected value to the actual value (along with the prediction intervals!)
   #plot(lwr ~ tail(new3$date,numLoops-1), data=data.frame(tail(MRpredict,numLoops-1)), col=253)
   #not column, but color!
-
+  
   #plot(lwr ~ tail(new3$date,i), data=data.frame(tail(MRpredict,i)), col=253)
   
   #forecasted
@@ -584,8 +600,8 @@ print("Next Month's value")
 #spredict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
 
 
-write.csv(new3, file = "output_test.csv")
-write.csv(MRpredict, file ="predictions.csv")
+write.csv(new3, file = "/home/rstudio/FredAPIR/output_test.csv/output_test.csv")
+write.csv(MRpredict, file ="/home/rstudio/FredAPIR/predictions.csv")
 
 
 
