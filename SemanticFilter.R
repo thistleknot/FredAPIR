@@ -114,7 +114,7 @@ for (i in semanticList)
 }
 
 #doing gold atm
-parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB')
+parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')
 #parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
 print(parsedList)
@@ -315,9 +315,9 @@ future2 <- data.frame(future)
 
 new2=cbind(new,past3)
 #bug here
-#new3=cbind(new2,future2)
+new3=cbind(new2,future2)
 #fixed
-new3=cbind(new2,future)
+#new3=cbind(new2,future)
 
 #https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
 #https://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
