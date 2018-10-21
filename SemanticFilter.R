@@ -48,7 +48,7 @@ fred <- FredR::FredR("661c0a90e914477da5a7518293de5f8e")
 
 windowSize=100
 
-start_date="1991-01-01"
+start_date="1980-01-01"
 end_date="2018-04-30"
 
 minLag=-5
@@ -600,7 +600,7 @@ print("Next Month's value")
 #spredict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
 
 
-write.csv(new3, file = "/home/rstudio/FredAPIR/output_test.csv/output_test.csv")
+write.csv(new3, file = "/home/rstudio/FredAPIR/output_test.csv")
 write.csv(MRpredict, file ="/home/rstudio/FredAPIR/predictions.csv")
 
 
