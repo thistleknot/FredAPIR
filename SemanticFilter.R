@@ -58,7 +58,7 @@ semanticList = c("Population", "Price", "Employment","Consumer", "500", "Monetar
 
 #semanticList = c("Population")
 
-semanticScore=77
+semanticScore=50
 
 semantic<-c()
 
@@ -117,6 +117,7 @@ for (i in semanticList)
 parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')
 #parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
+
 print(parsedList)
 #Sorted by importance
 #parsedList<-c("SPCS20RSA", "DGS1", "PAYEMS", "T10Y3M","TEDRATE","WPU0911","T5YIE","PSAVERT","A191RL1Q225SBEA")
@@ -170,6 +171,19 @@ process_data = function(d, value_name) {
   names(d)[2] = value_name
   return(d)
 }
+
+filtered<-c()
+for (i in seq_along(data_list)) {
+  if( (nrow(data.frame(data_list[i])))<=100)
+  {
+    print(parsedList[i]) 
+    print(i)
+    filter <- c(filter,parsedList[i])
+    
+  }
+}
+filtered
+
 
 # process the data
 data_list_processed = list()
