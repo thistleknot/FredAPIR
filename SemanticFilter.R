@@ -190,12 +190,24 @@ filtered
 
 parsedList2 <- parsedList[!parsedList %in% c(filtered)]
 
-# process the data
+#re-add important ones
+parsedList2<-c(unique(c(parsedList2,'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')))
+
+data_list2 = lapply(parsedList2, function(a)
+  fred$series.observations(
+    series_id = a,
+    observation_start = start_date,
+    observation_end = end_date
+  )
+)
+
+
+# process the data again
 data_list_processed = list()
-for (i in seq_along(data_list)) {
+for (i in seq_along(data_list2)) {
   
   #apply names
-  data_list_processed[[i]] = process_data(data_list[[i]], value_name = parsedList[i])
+  data_list_processed[[i]] = process_data(data_list2[[i]], value_name = parsedList2[i])
   
 }
 
@@ -291,7 +303,8 @@ ncol(data.frame(new))
 #manually remove SP500
 
 #fill in na?
-count=length(parsedList)+1
+
+count=length(parsedList2)+1
 a=1
 for (i in 1:count)
 {
@@ -449,10 +462,10 @@ for(i in 1:numLoops)
   #matrix compared against future
   
   View(colnames(swdataSet))
-  cor.mat <- cor(swdataSet[,parsedList[1:(length(parsedList)-1)]],swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F])
+  cor.mat <- cor(swdataSet[,parsedList2[1:(length(parsedList2)-1)]],swdataSet[,parsedList2[(length(parsedList2)):(length(parsedList2))],drop=F])
   
   #http://r.789695.n4.nabble.com/apply-lm-for-all-the-columns-of-a-matrix-td855587.html
-  linearModels <- lm(formula = as.matrix(swdataSet[,parsedList[1:(length(parsedList)-1)]]) ~ swdataSet[,parsedList[(length(parsedList)):(length(parsedList))],drop=F]) 
+  linearModels <- lm(formula = as.matrix(swdataSet[,parsedList2[1:(length(parsedList2)-1)]]) ~ swdataSet[,parsedList2[(length(parsedList2)):(length(parsedList2))],drop=F]) 
   
   test <- (summary(linearModels))
   test$`Response CPIAUCSL`$coefficients
