@@ -340,8 +340,8 @@ for (i in 1:count)
 
 #y SPCS20RSA
 #set future here (y)
-#set future to USSTHPI
-future <- stats::lag(zoo(c(new$USSTHPI)), c(1), na.pad = TRUE)
+#set future to CSUSHPINSA
+future <- stats::lag(zoo(c(new$CSUSHPINSA)), c(1), na.pad = TRUE)
 #future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
