@@ -173,12 +173,16 @@ process_data = function(d, value_name) {
 }
 
 filtered<-c()
+difference = (as.Date(end_date)-as.Date(start_date))
+filterThreshold=as.integer(difference/365*12)*.8
+
 for (i in seq_along(data_list)) {
-  if( (nrow(data.frame(data_list[i])))<=100)
+  #if less than 95% of data points, let's drop it
+  if( (nrow(data.frame(data_list[i])))<=filterThreshold)
   {
     print(parsedList[i]) 
     print(i)
-    filter <- c(filter,parsedList[i])
+    filtered <- c(filter,parsedList[i])
     
   }
 }
