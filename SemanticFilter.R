@@ -191,7 +191,7 @@ filtered
 parsedList2 <- parsedList[!parsedList %in% c(filtered)]
 
 #re-add important ones
-parsedList2<-c(unique(c(parsedList2,'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')))
+parsedList2<-c(unique(c(parsedList2,'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI','MEHOINUSA672N','DEXBZUS','GFDEBTN','M2V','GDPC1')))
 
 data_list2 = lapply(parsedList2, function(a)
   fred$series.observations(
