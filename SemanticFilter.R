@@ -215,7 +215,7 @@ for (i in seq_along(data_list2)) {
 
 #combined_data = Reduce(merge, data_list_processed)
 combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
-
+#colnames(combined_data)
 #aggregate/reduce data from daily (due to join by date operation) to weekly
 #https://stackoverflow.com/questions/10085806/extracting-specific-columns-from-a-data-frame
 
@@ -253,6 +253,7 @@ for (i in parsedList2)
 }
 #print(df3)
 
+
 combined_data_z <- df3
 #https://stackoverflow.com/a/50173660/1731972
 
@@ -281,7 +282,9 @@ date_z <- zoo(data.frame(dates))
 
 print(dates)
 
-test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE), "extend")
+#error here
+
+test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE), c("extend",NA))
 
 #print(test1_z_approx)
 
