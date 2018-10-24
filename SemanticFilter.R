@@ -224,7 +224,7 @@ df3 <- c()
 a=2
 #okay to go from 2 due ot date
 #and from i in parsedList because a is what's offset from 2.
-for (i in parsedList)
+for (i in parsedList2)
 {
   #select subset of combined data, in this case, date, and column a (starts at 2)
   df <- subset(combined_data, select = c(1, a))
