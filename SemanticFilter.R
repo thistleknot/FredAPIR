@@ -47,7 +47,7 @@ fred <- FredR::FredR("661c0a90e914477da5a7518293de5f8e")
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
 
-windowSize=100
+windowSize=40
 
 #grab past 30 years
 end_date <-
@@ -309,22 +309,48 @@ print(dates)
 #test1 <- combined_data_z[c(2:length(parsedList)+1)]
 
 #drop date
-test1 <- combined_data_z
-test1[1] <- NULL
+#test1 <- combined_data_z
+#test1[1] <- NULL
 
 #print(test1)                  
 
 #wtf, had to add data.frame today!
-test1_z <- zoo(data.frame(test1))
+#test1_z <- zoo(data.frame(test1))
+test1_z <- zoo(data.frame(combined_data_z))
+
+
+ncol(test1_z)
+nrow(test1_z)
 
 date_z <- zoo(data.frame(dates))
+
+ncol(date_z)
 
 print(dates)
 
 #error here
+table(is.na(test1_z))
 
-test1_z_approx <- na.fill(na.approx(test1_z, dates$date, rule=2, na.rm = FALSE), c("extend",NA))
+#https://sebastiansauer.github.io/sum-isna/
+# # na's per column
+dropColumns = sapply(test1_z, function(x) sum(is.na(x)))
 
+#if i > 80%
+percent=.8
+threshold=1-percent
+for (i in dropColumns)
+{
+  print(i)
+  if(i>(threshold*nrow(test1_z)))
+  {
+    print("drop")
+  }
+  
+}
+
+test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z)], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
+#write.csv(test1_z,"test1_z.csv")
+ncol(test1_z_approx)
 #print(test1_z_approx)
 
 #automatically create n lags
@@ -341,6 +367,7 @@ past3 <- c()
 new <- c(data.frame(dates),data.frame(test1_z_approx))
 ncol(data.frame(new))
 
+ncol(new)
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 #manually remove SP500
 
@@ -503,7 +530,15 @@ for(i in 1:numLoops)
   #correlation matrix of just high level #'s
   
   #matrix compared against future
+  #swdataSet doesn't have all the same names as parsedList3?
+  #View(colnames(swdataSet))
+  #write.csv(colnames(swdataSet[,1:326]), file="swdataSet.csv")
   
+  #write.csv(parsedList3, file="parsedList3.csv")
+  
+  #swdataSet[,parsedList3[1:(length(parsedList3)-1)]]
+  #swdataSet[,parsedList3[(length(parsedList3)):(length(parsedList3))]]
+  #swdataSet[,parsedList3[(length(parsedList3)):(length(parsedList3))]]
   colnames(swdataSet)
   #subset based on names?
   cor.mat <- cor(swdataSet[,parsedList3[1:(length(parsedList3)-1)]],swdataSet[,parsedList3[(length(parsedList3)):(length(parsedList3))],drop=F])
