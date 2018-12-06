@@ -32,6 +32,7 @@ install_github("kassambara/factoextra")
 library("factoextra")
 library("corrplot")
 library("PerformanceAnalytics")
+library("mondate")
 
 require(ggplot2)
 require(gridExtra)
@@ -48,8 +49,13 @@ fred <- FredR::FredR("661c0a90e914477da5a7518293de5f8e")
 
 windowSize=100
 
-start_date="1980-01-01"
-end_date="2018-04-30"
+#grab past 30 years
+end_date <-
+
+todayIs <- as.Date(as.POSIXlt(as.Date(Sys.Date())))
+#end_date="2018-04-30"
+start_date=as.Date(mondate(as.Date(todayIs)) - 360)
+end_date=todayIs
 
 minLag=-5
 
@@ -201,15 +207,41 @@ data_list2 = lapply(parsedList2, function(a)
   )
 )
 
-
 # process the data again
-data_list_processed = list()
+#errorList = c()
+filtered <- c()
 for (i in seq_along(data_list2)) {
-  
+  #if error, skip
   #apply names
-  data_list_processed[[i]] = process_data(data_list2[[i]], value_name = parsedList2[i])
+  t <- try(process_data(data_list2[[i]], value_name = parsedList2[i]))
+  #get empty lists!
+  if ("try-error" %in% class(t)) {
+    print (i)
+    filtered <- c(filtered,parsedList2[i])
+    #errorList <- rbind(errorList,i)
+    }
+  #else {print i}
+  #else data_list_processed[[i]] = process_data(data_list2[[i]], value_name = parsedList2[i])
   
 }
+parsedList3 <- parsedList2[!parsedList2 %in% c(filtered)]
+
+data_list3 <- data_list2[!parsedList2 %in% c(filtered)]
+
+data_list_processed = list()
+
+for (i in seq_along(parsedList3)) {
+  #print(i)
+  print(parsedList3[i])
+  
+  #print(data_list2[parsedList3[i]])
+
+  #colnames(parsedList3)
+  
+  data_list_processed[[i]] = process_data(data_list3[[i]], value_name = parsedList3[i])
+  
+}
+
 
 #merge data by date
 
@@ -224,28 +256,35 @@ df3 <- c()
 a=2
 #okay to go from 2 due ot date
 #and from i in parsedList because a is what's offset from 2.
-for (i in parsedList2)
+#34 has bad data
+
+for (i in parsedList3)
 {
+  
   #select subset of combined data, in this case, date, and column a (starts at 2)
   df <- subset(combined_data, select = c(1, a))
   
   df2 <- df %>%
     tq_transmute(select = 2,
-                 mutate_fun = apply.monthly,
+                 #I desire to do quarterly, as most financial numbers are reported quarterly, but this requires a lot of data
+                 mutate_fun = apply.quarterly,
                  #http://www.business-science.io/timeseries-analysis/2017/07/02/tidy-timeseries-analysis.html
                  na.rm = TRUE,
                  FUN        = mean)
-  #print(df2)
+  
+  print(parsedList3[a])
   
   #1st pass has date (single dataframe includes two columns)
   if(a==2)
   {
+    print("a==2")
     df3 <- df2
     a=a+1  
   }
   else
     #subsequent passes include two columns across two dataframes
   {
+    print("else")
     df3 <- c(df3, df2[,2])
     a=a+1
   }
@@ -307,7 +346,7 @@ ncol(data.frame(new))
 
 #fill in na?
 
-count=length(parsedList2)+1
+count=length(parsedList3)+1
 a=1
 for (i in 1:count)
 {
@@ -318,9 +357,10 @@ for (i in 1:count)
   print(a)
   past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
   
-  #need to loop down to minLag
+  #creates list to hold names, need to set names down to minLag (-5)
   names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"),paste(names(new[a]), "-4"),paste(names(new[a]), "-5"))
   names(new[a])
+  
   
   past2=data.frame(past)
   
@@ -464,11 +504,12 @@ for(i in 1:numLoops)
   
   #matrix compared against future
   
-  View(colnames(swdataSet))
-  cor.mat <- cor(swdataSet[,parsedList2[1:(length(parsedList2)-1)]],swdataSet[,parsedList2[(length(parsedList2)):(length(parsedList2))],drop=F])
-  
+  colnames(swdataSet)
+  #subset based on names?
+  cor.mat <- cor(swdataSet[,parsedList3[1:(length(parsedList3)-1)]],swdataSet[,parsedList3[(length(parsedList3)):(length(parsedList3))],drop=F])
+  #swdataSet[,parsedList2[1:(length(parsedList2)-1)]]
   #http://r.789695.n4.nabble.com/apply-lm-for-all-the-columns-of-a-matrix-td855587.html
-  linearModels <- lm(formula = as.matrix(swdataSet[,parsedList2[1:(length(parsedList2)-1)]]) ~ swdataSet[,parsedList2[(length(parsedList2)):(length(parsedList2))],drop=F]) 
+  linearModels <- lm(formula = as.matrix(swdataSet[,parsedList3[1:(length(parsedList3)-1)]]) ~ swdataSet[,parsedList3[(length(parsedList3)):(length(parsedList3))],drop=F]) 
   
   test <- (summary(linearModels))
   test$`Response CPIAUCSL`$coefficients
