@@ -39,15 +39,13 @@ require(gridExtra)
 require(zoo)
 
 
-api.key <- read_file("/home/rstudio/FredAPIR/apiKey.txt")
-
-fred <- FredR::FredR("661c0a90e914477da5a7518293de5f8e")
+api.key <- read_file("apiKey.txt")
 
 #note
 #switched housing index to USSTHPI which goes back to 1980!
 #test for modes, if mode = min, or max, dataset was extended. then remove column
 
-windowSize=40
+windowSize=50
 
 #grab past 30 years
 end_date <-
@@ -333,20 +331,44 @@ table(is.na(test1_z))
 
 #https://sebastiansauer.github.io/sum-isna/
 # # na's per column
+#View(test1_z)
 dropColumns = sapply(test1_z, function(x) sum(is.na(x)))
+View(dropColumns)
 
+#some are quarterly and are getting truncated because of it
 #if i > 80%
-percent=.8
-threshold=1-percent
-for (i in dropColumns)
+#percent=.8
+#floor=1-percent
+#data.frame(dropColumns)
+
+filtered <- c()
+#start from last column
+for (i in 1:nrow(data.frame(dropColumns)))
 {
-  print(i)
-  if(i>(threshold*nrow(test1_z)))
+  #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
+  
+  #if(i>(floor*nrow(test1_z)))
+  print(data.frame(dropColumns[i])[,1])
+  if(data.frame(dropColumns[i])[,1]>=(nrow(test1_z)-1))
   {
-    print("drop")
+    #print(dropColumns[i])
+    
+   
+    filtered <- rbind(filtered,colnames(test1_z)[i])
   }
+  #{
+    #filtered <- rbind(filtered,colnames(test1_z)[i])
+  #}
   
 }
+
+test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z[!parsedList %in% c(filtered)])], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
+#not actually filtering columns
+#test2_z <- test1_z[parsedList3 %in% c(filtered)]
+View(sapply(test2_z, function(x) sum(is.na(x))))
+
+ncol(test2_z)
+View(test2_z)
 
 test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z)], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
 #write.csv(test1_z,"test1_z.csv")
