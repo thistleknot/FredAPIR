@@ -353,7 +353,6 @@ for (i in 1:nrow(data.frame(dropColumns)))
   {
     #print(dropColumns[i])
     
-   
     filtered <- rbind(filtered,colnames(test1_z)[i])
   }
   #{
@@ -365,11 +364,43 @@ for (i in 1:nrow(data.frame(dropColumns)))
 
 #View(parsedList3)
 #data.frame(filtered)
-data_list4 <-parsedList3[!parsedList3 %in% c(filtered)]
-#commit this shit
-ncol(test1_z[,c(data_list4)])
+data_list4 <- c()
+#data_list4 <- c("date")
 
-test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z[!parsedList3 %in% c(filtered)])], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
+data_list4 <-c("date",parsedList3[!parsedList3 %in% c(filtered)])
+#commit this shit
+#ncol(test1_z[,c(data_list4)])
+
+test2_z <- test1_z[,c(data_list4)]
+#View(test2_z)
+ncol(test2_z)
+nrow(test2_z)
+View(test2_z)
+#table(is.na(test2_z))
+
+#test2_z_approx <- na.fill(na.approx(test2_z, test2_z$date, rule=q, na.rm = FALSE), c("extend",NA))
+#test2_z_approx <- na.fill(na.approx(test2_z, test2_z$date, method="linear",n=4,rule=0, na.rm = FALSE))
+
+test2_z_approx<-c()
+filtered <- c()
+for (i in seq_along(colnames(test2_z))) {
+  #if error, skip
+  #apply names
+  t <- try(test2_z_approx <- na.fill(na.approx(test2_z[,c(i)], test2_z$date, rule=q, na.rm = FALSE), c("extend",NA)))
+  #get empty lists!
+  if ("try-error" %in% class(t)) {
+    print (i)
+    #filtered <- c(filtered,parsedList2[i])
+    #errorList <- rbind(errorList,i)
+  }
+  
+  #else {print i}
+  #else data_list_processed[[i]] = process_data(data_list2[[i]], value_name = parsedList2[i])
+  
+}
+parsedList3 <- parsedList2[!parsedList2 %in% c(filtered)]
+
+
 #not actually filtering columns
 #test2_z <- test1_z[parsedList3 %in% c(filtered)]
 View(sapply(test2_z, function(x) sum(is.na(x))))
