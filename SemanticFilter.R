@@ -361,8 +361,15 @@ for (i in 1:nrow(data.frame(dropColumns)))
   #}
   
 }
+#View(sapply(test1_z[,2:ncol(test1_z[!parsedList3 %in% c(filtered)])], function(x) sum(is.na(x))))
 
-test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z[!parsedList %in% c(filtered)])], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
+#View(parsedList3)
+#data.frame(filtered)
+data_list4 <-parsedList3[!parsedList3 %in% c(filtered)]
+#commit this shit
+ncol(test1_z[,c(data_list4)])
+
+test1_z_approx <- na.fill(na.approx(test1_z[,2:ncol(test1_z[!parsedList3 %in% c(filtered)])], test1_z$date, rule=2, na.rm = FALSE), c("extend",NA))
 #not actually filtering columns
 #test2_z <- test1_z[parsedList3 %in% c(filtered)]
 View(sapply(test2_z, function(x) sum(is.na(x))))
