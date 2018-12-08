@@ -10,6 +10,7 @@ devtools::install_github("jcizel/FredR")
 #install.packages("magrittr")
 #install.packages("readr") # you only need to do this one time on your system
 
+library("FredR")
 library(data.table)
 library(xts)
 library(tidyquant)
@@ -40,6 +41,7 @@ require(zoo)
 
 
 api.key <- read_file("apiKey.txt")
+fred <- FredR(api.key)
 
 #note
 #switched housing index to USSTHPI which goes back to 1980!
@@ -390,7 +392,12 @@ for (i in seq_along(colnames(test2_z))) {
   #get empty lists!
   if ("try-error" %in% class(t)) {
     print (i)
-    #filtered <- c(filtered,parsedList2[i])
+    print(colnames(test2_z)[i])
+    #filtered <- rbind(filtered,colnames(test2_z)[i])
+    #print(filtered)
+    #filtered <- c(filtered,colnames(test2_z)[i])
+    #filtered <- rbind(filtered,colnames(test2_z)[i])
+    
     #errorList <- rbind(errorList,i)
   }
   
@@ -398,7 +405,8 @@ for (i in seq_along(colnames(test2_z))) {
   #else data_list_processed[[i]] = process_data(data_list2[[i]], value_name = parsedList2[i])
   
 }
-parsedList3 <- parsedList2[!parsedList2 %in% c(filtered)]
+
+parsedList4 <- parsedList3[!parsedList3 %in% c(filtered)]
 
 
 #not actually filtering columns
