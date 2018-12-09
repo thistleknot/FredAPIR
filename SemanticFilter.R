@@ -538,6 +538,12 @@ ncol(new4)
 #View(new4)
 new4$CSUSHPINSA
 new4$future
+
+# # of na's in future
+naFuture = sum(is.na(new4$future))
+
+new5=tail(new4,-naFuture)
+
 #fixed
 #new3=cbind(new2,future)
 
@@ -602,7 +608,6 @@ numLoops=nrow(tail(new3, -5))-windowSize
 
 #x<-c(as.Date(min(dataSet$date)),as.Date(max(dataSet$date)))
 #y<-c(x<-c(min(dataSet$future),max(dataSet$future)))
-
 
 #plot(x ,y)
 #plot.new()
@@ -846,7 +851,7 @@ print("Next Month's value")
 #spredict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
 
 
-write.csv(new4, file = "output_test.csv")
+write.csv(new5, file = "output_test.csv")
 write.csv(MRpredict, file ="predictions.csv")
 
 
