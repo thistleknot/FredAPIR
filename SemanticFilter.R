@@ -518,7 +518,7 @@ future2 <- data.frame(future)
 new2=cbind(new,past3)
 #bug here
 new3=cbind(new2,future2)
-View(new3)
+#View(new3)
 #fixed
 #new3=cbind(new2,future)
 
@@ -622,7 +622,7 @@ for(i in 1:numLoops)
   #swdataSet <- scale(wdataSet[ , -which(names(wdataSet) %in% c("date","date..1","date..2","date..3","date..4"))][1:(ncol(test1_z_approx)-3)])
   swdataSet <- scale(na.fill(wdataSet,c("extend",NA)))
   
-  View(wdataSet[ , -which(names(wdataSet) %in% c("date","date..1","date..2","date..3","date..4"))][2:ncol(test2_z_approxSubset)])
+  #View(wdataSet[ , -which(names(wdataSet) %in% c("date","date..1","date..2","date..3","date..4"))][2:ncol(test2_z_approxSubset)])
   test <- wdataSet[ , -which(names(wdataSet) %in% c("date","date..1","date..2","date..3","date..4"))][2:ncol(test2_z_approxSubset)]
   test = colMeans(test,na.rm = TRUE)
   View(test)
