@@ -416,8 +416,8 @@ for (i in 1:nrow(data.frame(dropColumns)))
   #if(i>(floor*nrow(test1_z)))
   print(data.frame(dropColumns[i])[,1])
   #not really a percentage, more so a minimal acceptable loss
-  #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant*2))
-  if((data.frame(dropColumns[i])[,1])>=(seasonalConstant+2))
+  #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant+2))
+  if((data.frame(dropColumns[i])[,1])>=(4))
   {
     print("yes")
     
@@ -436,7 +436,11 @@ for (i in 1:nrow(data.frame(dropColumns)))
 }
 #do something with filtered
 #this is the subset
+na.approx(test1_z[,2:ncol(test2_z)], method="linear",n=seasonalConstant, na.rm = FALSE)
 test2_z_approxSubset <- (test2_z_approx[,-c(filtered)])
+
+#test2_z_approx <- na.fill(na.approx(test2_z, test2_z$date, rule=q, na.rm = FALSE), c("extend",NA))
+
 ncol(test2_z_approxSubset)
 
 #not actually filtering columns
@@ -568,7 +572,6 @@ View(new4)
 ncol(new4)
 #View(new4)
 new4$CSUSHPINSA
-new4$csus
 
 # # of na's in future
 naFuture = sum(is.na(new4$future))
@@ -617,7 +620,7 @@ temp1Future<-head(tail(new3[ncol(new3):ncol(new3)],-5),6)
 nrow(temp1Data)
 nrow(temp1Future)
 
-write.csv(new5, file = "output_test.csv")
+write.csv(new4, file = "output_test.csv")
 write.csv(MRpredict, file ="predictions.csv")
 
 
