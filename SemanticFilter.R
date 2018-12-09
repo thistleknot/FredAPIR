@@ -41,7 +41,6 @@ require(ggplot2)
 require(gridExtra)
 require(zoo)
 
-
 #api.key <- read_file("apiKey.txt")
 api.key = '3ee8b91b17078df0b51bea5c9cfd11c6'
 fred <- FredR(api.key)
@@ -181,26 +180,27 @@ process_data = function(d, value_name) {
   return(d)
 }
 
-filtered<-c()
-difference = (as.Date(end_date)-as.Date(start_date))
-filterThreshold=as.integer(difference/365*12)*.95
+#filtered<-c()
+#difference = (as.Date(end_date)-as.Date(start_date))
+#filterThreshold=as.integer(difference/365*12)*.95
 
-for (i in seq_along(data_list)) {
-  #if less than 95% of data points, let's drop it
-  if( (nrow(data.frame(data_list[i])))<=filterThreshold)
-  {
-    print(parsedList[i]) 
-    print(i)
-    filtered <- c(filter,parsedList[i])
-    
-  }
-}
-filtered
+#done incorrectly due to way yearly and monthly reporting is done.
+#for (i in seq_along(data_list)) {
+#  #if less than 95% of data points, let's drop it
+#  if( (nrow(data.frame(data_list[i])))<=filterThreshold)
+#  {
+#    print(parsedList[i]) 
+#    print(i)
+#    filtered <- c(filter,parsedList[i])
+#    
+#  }
+#}
+#filtered
 
-parsedList2 <- parsedList[!parsedList %in% c(filtered)]
+#parsedList2 <- parsedList[!parsedList %in% c(filtered)]
 
 #re-add important ones
-parsedList2<-c(unique(c(parsedList2,'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI','MEHOINUSA672N','DEXBZUS','GFDEBTN','M2V','GDPC1')))
+parsedList2<-c(unique(c(parsedList,'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI','MEHOINUSA672N','DEXBZUS','GFDEBTN','M2V','GDPC1')))
 
 data_list2 = lapply(parsedList2, function(a)
   fred$series.observations(
@@ -251,6 +251,8 @@ for (i in seq_along(parsedList3)) {
 #combined_data = Reduce(merge, data_list_processed)
 
 #combined_date is daily, lots of na's, hence quaterly transform below
+#creates two extra dates in front that are na
+head(combined_data)
 combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_processed)
 #colnames(combined_data)
 #aggregate/reduce data from daily (due to join by date operation) to weekly
@@ -259,7 +261,7 @@ combined_data = Reduce(function(x, y) merge(x, y, all = TRUE), data_list_process
 df3 <- c()
 
 a=2
-#okay to go from 2 due ot date
+#okay to go from 2 due to date
 #and from i in parsedList because a is what's offset from 2.
 #34 has bad data
 
@@ -281,7 +283,7 @@ for (i in parsedList3)
                  na.rm = TRUE,
                  FUN = mean)
   
-  print(parsedList3[a])
+  print(parsedList3[i])
   
   #1st pass has date (single dataframe includes two columns)
   if(a==2)
@@ -328,7 +330,6 @@ print(dates)
 test1_z <- zoo(data.frame(combined_data_z))
 #View(test1_z)
 
-
 ncol(test1_z)
 nrow(test1_z)
 
@@ -353,8 +354,8 @@ View(dropColumns)
 #floor=1-percent
 #data.frame(dropColumns)
 
+#filter through by removing those where na is equal to all but 1 value
 filtered <- c()
-#start from last column
 for (i in 1:nrow(data.frame(dropColumns)))
 {
   #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
@@ -415,7 +416,7 @@ for (i in 1:nrow(data.frame(dropColumns)))
   print(data.frame(dropColumns[i])[,1])
   #not really a percentage, more so a minimal acceptable loss
   #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant*2))
-  if((data.frame(dropColumns[i])[,1])>=(seasonalConstant*2))
+  if((data.frame(dropColumns[i])[,1])>=(seasonalConstant+2))
   {
     print("yes")
     
@@ -462,7 +463,10 @@ past2 <- c()
 past3 <- c()
 #dates are off
 #odd SMPOPNETMUSA
+
+#can't truncate date here
 new <- c(data.frame(test2_z$date),data.frame(test2_z_approxSubset))
+
 #View(new)
 parsedList4 <- colnames(test2_z_approxSubset)
 ncol(data.frame(new))
@@ -473,26 +477,25 @@ ncol(new)
 
 #fill in na?
 
-count=length(parsedList4)+1
-a=1
-for (i in 1:count)
+#what is a supposed to be?
+
+for (i in 1:(length(parsedList4)+1))
 {
   #i=1
   #a=1
   #naming
   print(i)
-  print(a)
-  past <- c(stats::lag(zoo(c(new[[a]])), c(-1:minLag), na.pad =TRUE))
+  #print(a)
+  past <- c(stats::lag(zoo(c(new[[i]])), c(-1:minLag), na.pad =TRUE))
   
   #creates list to hold names, need to set names down to minLag (-5)
-  names(past) <- c( paste(names(new[a]), "-1"), paste(names(new[a]), "-2") ,paste(names(new[a]), "-3"),paste(names(new[a]), "-4"),paste(names(new[a]), "-5"))
+  names(past) <- c( paste(names(new[i]), "-1"), paste(names(new[i]), "-2") ,paste(names(new[i]), "-3"),paste(names(new[i]), "-4"),paste(names(new[i]), "-5"))
   names(new[a])
-  
   
   past2=data.frame(past)
   
-  #join
-  if(a==1)
+  #join based on date
+  if(i==1)
   {
     past3 <- past2
     
@@ -502,23 +505,39 @@ for (i in 1:count)
     past3<-cbind(past3,past2)
   }
   
-  a=a+1
+  #a=a+1
   
 } 
 
 #print(past3)
 
-#y SPCS20RSA
+#y=SPCS20RSA
 #set future here (y)
 #set future to CSUSHPINSA
-future <- stats::lag(zoo(c(new$CSUSHPINSA)), c(1), na.pad = TRUE)
+#use stats::lag(zoo( for some normalized version for PCA?  I assumed never need to transform y
+#future <- lag(new$CSUSHPINSA, k = -2, na.pad = TRUE)
+future <- shift(new$CSUSHPINSA, n=1L, fill=NA, type=c("lead"), give.names=FALSE)
+#View(future)
 #future <- stats::lag(zoo(c(new$GOLDAMGBD228NLBM)), c(1), na.pad = TRUE)
 future2 <- data.frame(future)
 
+#combine current set and past sets
+#View(new)
 new2=cbind(new,past3)
-#bug here
-new3=cbind(new2,future2)
-#View(new3)
+
+#combine current (past, and current), and future set
+#include past
+#new3=cbind(new2,future2)
+
+#include no past
+new3=cbind(new,future2)
+
+#remove first three lines (1st 2 are na's, 3rd is removed due to bad future value extended)
+new4=tail(new3,-3)
+ncol(new4)
+#View(new4)
+new4$CSUSHPINSA
+new4$future
 #fixed
 #new3=cbind(new2,future)
 
@@ -529,15 +548,18 @@ new3=cbind(new2,future2)
 #linear model
 #remove last future value
 
+#example code
 # # of elements
 n<-dim(df)[1]
 
+#example code
 #nrow(df), all but last row (this is offsetting)
 df<-df[1:(n-1),]
-
+#not used
 future3<-df$future
 
-#remove future
+#not used
+#remove future (all but last row)
 #https://stackoverflow.com/questions/10162480/copy-many-columns-from-one-data-frame-to-another
 data2<-df[,c(1:ncol(df)-1)]
 
@@ -568,11 +590,14 @@ f <- as.formula(paste("temp1Future$future ~", paste(n[!n %in% "y"], collapse = "
 
 #testd <- lm(as.formula(paste(f, ",", datafilename))
 
+#why am I excluding last 5... due to lag, but the lag doesn't work like this, 
+#explanation is given below, 
+#this starts at the i+5th position and starts creating past values back 5 positions
 #everything
 dataSet<-(tail(new3, -5))
 #ncol(dataSet)
 
-# # of Loops
+# # of Loops (all but 5 lag values)
 numLoops=nrow(tail(new3, -5))-windowSize
 
 #x<-c(as.Date(min(dataSet$date)),as.Date(max(dataSet$date)))
@@ -587,7 +612,7 @@ numLoops=nrow(tail(new3, -5))-windowSize
 
 MRpredict <- c()
 
-#forced model
+#forced model (i + 5 lag values)
 i=1
 for(i in 1:numLoops)
 {
@@ -607,12 +632,12 @@ for(i in 1:numLoops)
   #need all columns for correlation analysis of last var.
   #wdataSet = all data, not jjust specific window?
   
+  #bad idea, I reuse future differently
   future <- new3[(i+5):(windowSize+i+5),ncol(new3)]
   wdataSet <- (cbind(as.numeric(new3[(i+5):(windowSize+i+5),1]),new3[(i+5):(windowSize+i+5),2:(ncol(new3)-1)]))
   
   #nrow(wdataSet)
   #View(wdataSet)
-  
   
   colnames(new3)
   
@@ -821,7 +846,7 @@ print("Next Month's value")
 #spredict(windowMRModel,data.frame(tail(new3,1)),interval="predict",level=.99)
 
 
-write.csv(new3, file = "output_test.csv")
+write.csv(new4, file = "output_test.csv")
 write.csv(MRpredict, file ="predictions.csv")
 
 
