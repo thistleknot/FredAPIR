@@ -533,6 +533,8 @@ new2=cbind(new,past3)
 #include no past
 new3=cbind(new,future2)
 
+new4=new3
+
 #remove first three lines (1st 2 are na's, 3rd is removed due to bad future value extended)
 
 x <- new3[!colnames(new3) %in% c('future')]
