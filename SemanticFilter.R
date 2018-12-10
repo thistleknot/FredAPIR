@@ -468,7 +468,8 @@ ncol(test2_z_approxSubset)
 ncol(test2_z)
 #View(test2_z)
 #sapply(test2_z_approxSubset, function(x) sum(is.na(x)))
-dropcolums = colSums(test2_z_approxSubset == 0, na.rm = TRUE)
+dropColumns = colSums(test2_z_approxSubset == 0, na.rm = TRUE)
+View(dropcolumns)
 
 filtered <- c()
 #start from last column
@@ -480,7 +481,7 @@ for (i in 1:nrow(data.frame(dropColumns)))
   print(data.frame(dropColumns[i])[,1])
   #not really a percentage, more so a minimal acceptable loss
   #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant+2))
-  if((data.frame(dropColumns[i])[,1])>=(4))
+  if((data.frame(dropColumns[i])[,1])>=4)
   {
     print("yes")
     
@@ -523,16 +524,16 @@ new <- c(data.frame(test2_z$date),data.frame(test3_z_approxSubset))
 
 #View(new)
 parsedList4 <- colnames(test3_z_approxSubset)
-ncol(data.frame(new))
+#ncol(data.frame(new))
+#colnames(new)
 
-ncol(new)
 #https://stackoverflow.com/questions/28055927/how-can-i-automatically-create-n-lags-in-a-timeseries
 #manually remove SP500
 
 #fill in na?
 
 #what is a supposed to be?
-
+#creates past dataframes
 for (i in 1:(length(parsedList4)+1))
 {
   #i=1
@@ -661,17 +662,17 @@ data2<-df[,c(1:ncol(df)-1)]
 #rollapply()
 
 #remove the 1st few lines due to minlag (n/a's)
-temp1Data<-head(tail(new3[1:ncol(new3)-1],-5),6)
+temp1Data<-head(tail(new5[1:ncol(new5)-1],-5),6)
 
 #temp1Dates<-tail(new3[1:1],-5)
-temp1Future<-head(tail(new3[ncol(new3):ncol(new3)],-5),6)
+temp1Future<-head(tail(new5[ncol(new5):ncol(new5)],-5),6)
 
 nrow(temp1Data)
 nrow(temp1Future)
 
 write.csv(new4, file = "output_test.csv")
-write.csv(MRpredict, file ="predictions.csv")
-
+#write.csv(MRpredict, file ="predictions.csv")
+write(new4)
 
 
 
