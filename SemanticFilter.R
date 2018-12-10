@@ -10,6 +10,7 @@ devtools::install_github("jcizel/FredR")
 #install.packages("magrittr")
 #install.packages("readr") # you only need to do this one time on your system
 
+library(Matrix)
 library("FredR")
 library(data.table)
 library(xts)
@@ -123,6 +124,7 @@ for (i in semanticList)
 }
 
 #doing gold atm
+#FGCCSAQ027S has a bunch of rogue 0's
 parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')
 #parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
@@ -331,6 +333,8 @@ print(dates)
 test1_z <- zoo(data.frame(combined_data_z))
 #View(test1_z)
 
+
+
 ncol(test1_z)
 nrow(test1_z)
 
@@ -347,6 +351,18 @@ table(is.na(test1_z))
 # # na's per column
 #View(test1_z)
 dropColumns = sapply(test1_z, function(x) sum(is.na(x)))
+
+#View(sapply(test1_z, function(x) count(x[x==0])))
+#https://www.biostars.org/p/206373/
+#index <- rowSums (data.frame(test1_z) > 10)
+#test <- data.frame(test1_z)[index,]
+#View(test)
+
+#sapply(vector(test1_z), function(x) count(x==0))
+
+
+
+#dropColumns2 = sappply(test1_z, function(x) sum(frd$col0 == 0))
 View(dropColumns)
 
 #some are quarterly and are getting truncated because of it
@@ -443,16 +459,49 @@ test2_z_approxSubset <- (test2_z_approx[,-c(filtered)])
 
 ncol(test2_z_approxSubset)
 
+#View(test2_z_approxSubset)
+
 #not actually filtering columns
 #test2_z <- test1_z[parsedList3 %in% c(filtered)]
 #View(sapply(test2_z, function(x) sum(is.na(x))))
 
 ncol(test2_z)
 #View(test2_z)
-sapply(test2_z_approxSubset, function(x) sum(is.na(x)))
+#sapply(test2_z_approxSubset, function(x) sum(is.na(x)))
+dropcolums = colSums(test2_z_approxSubset == 0, na.rm = TRUE)
+
+filtered <- c()
+#start from last column
+for (i in 1:nrow(data.frame(dropColumns)))
+{
+  #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
+  
+  #if(i>(floor*nrow(test1_z)))
+  print(data.frame(dropColumns[i])[,1])
+  #not really a percentage, more so a minimal acceptable loss
+  #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant+2))
+  if((data.frame(dropColumns[i])[,1])>=(4))
+  {
+    print("yes")
+    
+    #works
+    filtered <- rbind (filtered,i)
+    #works
+    print(colnames(test2_z_approx)[i])
+    #does not work
+    #filtered <- rbind(filtered,colnames(test2_z)[i-1])
+  }
+  else
+  {
+    print("no")
+  }
+  
+}
+
+test3_z_approxSubset <- (test2_z_approxSubset[,-c(filtered)])
 
 #write.csv(test1_z,"test1_z.csv")
-ncol(test2_z_approxSubset)
+ncol(test3_z_approxSubset)
 #print(test1_z_approx)
 
 #automatically create n lags
@@ -470,10 +519,10 @@ past3 <- c()
 #odd SMPOPNETMUSA
 
 #can't truncate date here
-new <- c(data.frame(test2_z$date),data.frame(test2_z_approxSubset))
+new <- c(data.frame(test2_z$date),data.frame(test3_z_approxSubset))
 
 #View(new)
-parsedList4 <- colnames(test2_z_approxSubset)
+parsedList4 <- colnames(test3_z_approxSubset)
 ncol(data.frame(new))
 
 ncol(new)
