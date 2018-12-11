@@ -10,7 +10,8 @@ devtools::install_github("jcizel/FredR")
 #install.packages("magrittr")
 #install.packages("readr") # you only need to do this one time on your system
 
-library(Matrix)
+#library(Matrix)
+library(lubridate)
 library("FredR")
 library(data.table)
 library(xts)
@@ -468,6 +469,8 @@ ncol(test2_z_approxSubset)
 ncol(test2_z)
 #View(test2_z)
 #sapply(test2_z_approxSubset, function(x) sum(is.na(x)))
+
+# # of 0's
 dropColumns = colSums(test2_z_approxSubset == 0, na.rm = TRUE)
 View(dropcolumns)
 
@@ -500,6 +503,9 @@ for (i in 1:nrow(data.frame(dropColumns)))
 }
 
 test3_z_approxSubset <- (test2_z_approxSubset[,-c(filtered)])
+
+
+#don't wish to make the mistake of converting 0's to 1's (via lnf) and then removing 1's... ultimately we don't want a lot of similar values.
 
 #write.csv(test1_z,"test1_z.csv")
 ncol(test3_z_approxSubset)
