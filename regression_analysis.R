@@ -39,12 +39,14 @@ train_ind <- sample(seq_len(nrow(x)), size = smp_size)
 #training x,y
 train_x <- x[train_ind, ]
 train_y <- y[train_ind, ]
+train_xy_set <- MyData[train_ind, c(xList,yField)]
+#View(training_set)
 
 #testing x,y
+#difference is -train
 test_x <- x[-train_ind, ]
 test_y <- y[-train_ind, ]
-
-trainingSet <- merge(train_y,train_x)
+test_xy_set <- MyData[-train_ind, c(xList,yField)]
 
 #rename column
   #http://rprogramming.net/rename-columns-in-r/
@@ -56,15 +58,16 @@ colnames(trainingSet)[colnames(trainingSet)=="x"] <- colnames(y)
 #merge quickly
 #total <- merge(data frameA,data frameB,by="ID")
 
-#SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
+#SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
+#removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
+trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
 
-trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q2 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POP + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = trainingSet)
 
 #trainingModel <- lm(trainingSet[SPSSReducedModel])
 #colnames(trainingSet[SPSSReducedModel])
 ols_step_all_possible(trainingModel)
 
 #break immediately
-#ols_step_backward_p(trainingModel)
+ols_step_backward_p(trainingModel)
 
 #colnames(merge(train_y,train_x))
