@@ -6,7 +6,7 @@ colnames(MyData)
 
 nonXFields <- c('test2_z.date','BL_yFYield_CSUSHPINSA','yFYield_CSUSHPINSA')
 
-#xfields
+#xfields (exclude nonXFields)
 xList = colnames(MyData[ ,which((names(MyData) %in% nonXFields)==FALSE)])
 
 MR_yField <- 'yFYield_CSUSHPINSA'
@@ -52,7 +52,7 @@ test_xy_set <- MyData[-train_ind, c(xList,yField)]
   #http://rprogramming.net/rename-columns-in-r/
   #colnames(data)[colnames(data)=="old_name"] <- "new_name"
 
-colnames(trainingSet)[colnames(trainingSet)=="x"] <- colnames(y)
+colnames(train_x)
 #colnames(trainingSet)
 
 #merge quickly
@@ -60,14 +60,14 @@ colnames(trainingSet)[colnames(trainingSet)=="x"] <- colnames(y)
 
 #SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
 #removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
+#trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
 trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
-
 
 #trainingModel <- lm(trainingSet[SPSSReducedModel])
 #colnames(trainingSet[SPSSReducedModel])
-ols_step_all_possible(trainingModel)
+results <- ols_step_all_possible(trainingModel, p=.05)
 
 #break immediately
-ols_step_backward_p(trainingModel)
+#ols_step_backward_p(trainingModel, p=.1)
 
 #colnames(merge(train_y,train_x))
