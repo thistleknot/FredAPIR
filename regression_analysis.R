@@ -3,14 +3,16 @@
 library(caret)
 library(DAAG)
 
+#filter
+library(dplyr)
+
 #MAE
 library(DescTools)
 
-#press
-library(qpcR)
 library(olsrr)
 library(ggplot2)
 
+#RSS
 PRESS <- function(linear.model) {
   pr <- residuals(linear.model)/(1 - lm.influence(linear.model)$hat)
   sum(pr^2)
@@ -90,9 +92,9 @@ trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_
 #trainingModel <- lm(trainingSet[SPSSReducedModel])
 #colnames(trainingSet[SPSSReducedModel])
 
-#results <- ols_step_all_possible(trainingModel, p=.05)
+results <- ols_step_all_possible(trainingModel, p=.05)
 
-results <- ols_step_best_subset(trainingModel, p=.05)
+#results <- ols_step_best_subset(trainingModel, p=.05)
 
 #results <- ols_regress(trainingModel, p=.05)
 View(results)
@@ -156,9 +158,6 @@ plot(fit)
 
 olsrr::ols_plot_resid_stud_fit(fit)
 
-
-
-
 print(trainingModel)
 trainingModel$coefnames
 
@@ -171,9 +170,40 @@ View(summary.print(results))
 
 #http://r-statistics.co/Linear-Regression.html
 
-
 plot(results)
-results
+
+#https://dplyr.tidyverse.org/reference/filter.html
+
+#split in half based on distance (mallows-n)
+mcp <- round(results$cp-results$n,0)
+mcp_floor <- min(mean(mcp),median(mcp))
+subset1 <- filter(results, results$cp-results$n <= mcp_floor)
+View(subset1)
+
+#split in half by adjR (these are the most likely candidates to test)
+adjRfilter <- min(mean(subset1$adjr),median(subset1$adjr))
+subset2 <- filter(subset1, subset1$adjr >= adjRfilter)
+View(subset2)
+
+#select smallest n
+sizefilter <- min(mean(subset1$n),median(subset1$n))
+subset3 <- filter(subset2, subset2$n <= sizefilter)
+View(subset3)
+
+#select lower half of errors
+errorFilter <- min(mean(subset2$msep),median(subset2$msep))
+subset3 <- filter(subset2, subset2$msep <= errorFilter)
+
+
+#do an if check more than 1 row, if so, pick minimimum error
+if(nrow(subset3)>1) {
+  subset3 <- filter(subset3, subset3$msep == min(subset3$msep))
+  print("yes")
+} else {
+  print("no")
+}
+
+View(subset2)
 #results$aic
 
 #jpeg('rplot.jpg')
