@@ -1,4 +1,11 @@
+
+#cross validation
+library(caret)
+library(DAAG)
+
 library(olsrr)
+library(ggplot2)
+
 
 MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
@@ -21,7 +28,6 @@ yField = MR_yField
 #preserves column names
 x <- MyData[xList]
 y <- MyData[yField]
-
 
 nrow(x)
 nrow(y)
@@ -49,8 +55,8 @@ test_y <- y[-train_ind, ]
 test_xy_set <- MyData[-train_ind, c(xList,yField)]
 
 #rename column
-  #http://rprogramming.net/rename-columns-in-r/
-  #colnames(data)[colnames(data)=="old_name"] <- "new_name"
+#http://rprogramming.net/rename-columns-in-r/
+#colnames(data)[colnames(data)=="old_name"] <- "new_name"
 
 colnames(train_x)
 #colnames(trainingSet)
@@ -65,8 +71,47 @@ trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_
 
 #trainingModel <- lm(trainingSet[SPSSReducedModel])
 #colnames(trainingSet[SPSSReducedModel])
-results <- ols_step_all_possible(trainingModel, p=.05)
 
+#results <- ols_step_all_possible(trainingModel, p=.05)
+
+results <- ols_step_best_subset(trainingModel, p=.05)
+
+#results <- ols_regress(trainingModel, p=.05)
+View(results)
+
+#https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
+#cross validation
+#rf = random forest
+#nb = naive bayes
+#method="rf"
+#train_control <- trainControl(method="cv", number=10)
+#model <- train(yFYield_CSUSHPINSA~., data=train_xy_set, trControl=train_control, contrasts = NULL)
+
+#https://stats.stackexchange.com/questions/61090/how-to-split-a-data-set-to-do-10-fold-cross-validation
+#flds <- createFolds(y, k = 10, list = TRUE, returnTrain = FALSE)
+#names(flds)[1] <- "train"
+
+#https://www.statmethods.net/stats/regression.html
+cv.lm(test_xy_set, trainingModel, m=3) # 3 fold cross-validation
+
+print(model)
+model$coefnames
+
+#results$predictors
+
+write.csv(results,"bestSubset.csv")
+
+summary.print(results)
+View(summary.print(results))
+
+
+plot(results)
+results
+#results$aic
+
+#jpeg('rplot.jpg')
+#ggplot(results)
+#dev.off()
 #break immediately
 #ols_step_backward_p(trainingModel, p=.1)
 
