@@ -6,6 +6,9 @@ library(DAAG)
 #filter
 library(dplyr)
 
+#xyplot
+library(lattice)
+
 #MAE
 library(DescTools)
 
@@ -116,50 +119,48 @@ cv.lm(test_xy_set, trainingModel, m=3) # 3 fold cross-validation
 
 cv.lm(train_xy_set, trainingModel, m=3) # 3 fold cross-validation
 
-olsrr::ols_plot_resid_stud_fit(trainingModel)
-
-summary(trainingModel)
 
 
 #https://www.rdocumentation.org/packages/EnvStats/versions/2.3.1/topics/predict.lm
-distPred <- predict(trainingModel, test_xy_set)
-#distPred
-#http://r-statistics.co/Linear-Regression.html
-fit <- lm(trainingModel, data=test_xy_set)
+#how to do this for test data?
+traindistPred <- predict(trainingModel)
+plot(traindistPred,trainingModel$residuals)
 
 nrow(test_xy_set)
 
+#studentized residuals
+olsrr::ols_plot_resid_stud_fit(trainingModel)
+hist(trainingModel$residuals)
+summary(trainingModel)
+
+#RMSE of training
+RMSE(trainingModel)
+
+#RSS
+PRESS(trainingModel)
+
+print(trainingModel)
+trainingModel$coefficients
+
+#http://r-statistics.co/Linear-Regression.html
+fit <- lm(trainingModel, data=test_xy_set)
+testdistPred <- predict(fit)
+plot(testdistPred,fit$residuals)
 #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
 MAE(fit)
 RMSE(fit)
 MAPE(fit)
 MSE(fit)
 SMAPE(fit)
-
-#RSS
 PRESS(fit)
-PRESS(trainingModel)
+
 #https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
 hist(fit$residuals)
-hist(trainingModel$residuals)
-
-#RMSE of training
-sqrt(mean(trainingModel$residuals^2))
-RMSE(trainingModel)
-
-#https://www.rdocumentation.org/packages/qpcR/versions/1.4-1/topics/PRESS
-PRESS(fit, verbose = TRUE)
-
-#RMSE of test
-sqrt(mean(fit$residuals^2))
 
 summary(fit) # show results
 plot(fit)
 
 olsrr::ols_plot_resid_stud_fit(fit)
-
-print(trainingModel)
-trainingModel$coefnames
 
 #results$predictors
 
@@ -178,12 +179,12 @@ plot(results)
 mcp <- round(results$cp-results$n,0)
 mcp_floor <- min(mean(mcp),median(mcp))
 subset1 <- filter(results, results$cp-results$n <= mcp_floor)
-View(subset1)
+#View(subset1)
 
 #split in half by adjR (these are the most likely candidates to test)
 adjRfilter <- min(mean(subset1$adjr),median(subset1$adjr))
 subset2 <- filter(subset1, subset1$adjr >= adjRfilter)
-View(subset2)
+#View(subset2)
 
 #select smallest n
 sizefilter <- min(mean(subset1$n),median(subset1$n))
@@ -192,19 +193,21 @@ View(subset3)
 
 #select lower half of errors
 errorFilter <- min(mean(subset2$msep),median(subset2$msep))
-subset3 <- filter(subset2, subset2$msep <= errorFilter)
+subset4 <- filter(subset3, subset3$msep <= errorFilter)
 
+#plot(subset4)
 
 #do an if check more than 1 row, if so, pick minimimum error
-if(nrow(subset3)>1) {
-  subset3 <- filter(subset3, subset3$msep == min(subset3$msep))
+if(nrow(subset4)>1) {
+  #subset3 <- filter(subset3, subset3$msep == min(subset3$msep))
   print("yes")
+  View(subset4)
 } else {
   print("no")
+  View(subset4)
 }
 
-View(subset2)
-#results$aic
+plot(subset4$n,subset4$adjr)
 
 #jpeg('rplot.jpg')
 #ggplot(results)
