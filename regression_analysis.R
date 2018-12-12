@@ -3,9 +3,18 @@
 library(caret)
 library(DAAG)
 
+#MAE
+library(DescTools)
+
+#press
+library(qpcR)
 library(olsrr)
 library(ggplot2)
 
+PRESS <- function(linear.model) {
+  pr <- residuals(linear.model)/(1 - lm.influence(linear.model)$hat)
+  sum(pr^2)
+}
 
 MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
@@ -107,17 +116,47 @@ cv.lm(train_xy_set, trainingModel, m=3) # 3 fold cross-validation
 
 olsrr::ols_plot_resid_stud_fit(trainingModel)
 
+summary(trainingModel)
 
-#distPred <- predict(trainingModel, test_xy_set)
+
+#https://www.rdocumentation.org/packages/EnvStats/versions/2.3.1/topics/predict.lm
+distPred <- predict(trainingModel, test_xy_set)
 #distPred
 #http://r-statistics.co/Linear-Regression.html
 fit <- lm(trainingModel, data=test_xy_set)
+
+nrow(test_xy_set)
+
+#https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
+MAE(fit)
+RMSE(fit)
+MAPE(fit)
+MSE(fit)
+SMAPE(fit)
+
+#RSS
+PRESS(fit)
+PRESS(trainingModel)
+#https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
+hist(fit$residuals)
+hist(trainingModel$residuals)
+
+#RMSE of training
+sqrt(mean(trainingModel$residuals^2))
+RMSE(trainingModel)
+
+#https://www.rdocumentation.org/packages/qpcR/versions/1.4-1/topics/PRESS
+PRESS(fit, verbose = TRUE)
+
+#RMSE of test
+sqrt(mean(fit$residuals^2))
+
 summary(fit) # show results
 plot(fit)
 
 olsrr::ols_plot_resid_stud_fit(fit)
 
-summary(trainingModel)
+
 
 
 print(trainingModel)
