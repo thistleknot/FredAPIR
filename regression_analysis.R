@@ -35,24 +35,33 @@ nrow(y)
 
 #https://stackoverflow.com/questions/17200114/how-to-split-data-into-training-testing-sets-using-sample-function/39403173
 ## 75% of the sample size
+#single split
 smp_size <- floor(0.75 * nrow(MyData))
 
 ## set the seed to make your partition reproducible
 set.seed(123)
 
+#possible to define two splits?
 train_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #training x,y
-train_x <- x[train_ind, ]
-train_y <- y[train_ind, ]
+#train_x <- x[train_ind, ]
+#train_y <- y[train_ind, ]
 train_xy_set <- MyData[train_ind, c(xList,yField)]
 #View(training_set)
 
 #testing x,y
 #difference is -train
-test_x <- x[-train_ind, ]
-test_y <- y[-train_ind, ]
+#test_x <- x[-train_ind, ]
+#test_y <- y[-train_ind, ]
 test_xy_set <- MyData[-train_ind, c(xList,yField)]
+
+#http://r-statistics.co/Linear-Regression.html
+set.seed(100)  # setting seed to reproduce results of random sampling
+trainingRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+trainingData <- MyData[trainingRowIndex, ]  # model training data
+testData  <- MyData[-trainingRowIndex*.5, ]   # test data
+validationData  <- MyData[-trainingRowIndex*.5, ]   # test data
 
 #rename column
 #http://rprogramming.net/rename-columns-in-r/
@@ -94,8 +103,19 @@ View(results)
 #https://www.statmethods.net/stats/regression.html
 cv.lm(test_xy_set, trainingModel, m=3) # 3 fold cross-validation
 
-print(model)
-model$coefnames
+cv.lm(train_xy_set, trainingModel, m=3) # 3 fold cross-validation
+
+olsrr::ols_plot_resid_stud_fit(trainingModel)
+
+#distPred <- predict(trainingModel, test_xy_set)
+#http://r-statistics.co/Linear-Regression.html
+fit <- lm(trainingModel, data=test_xy_set)
+summary(fit) # show results
+
+distPred
+
+print(trainingModel)
+trainingModel$coefnames
 
 #results$predictors
 
@@ -103,6 +123,8 @@ write.csv(results,"bestSubset.csv")
 
 summary.print(results)
 View(summary.print(results))
+
+#http://r-statistics.co/Linear-Regression.html
 
 
 plot(results)
