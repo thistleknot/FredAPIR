@@ -107,12 +107,18 @@ cv.lm(train_xy_set, trainingModel, m=3) # 3 fold cross-validation
 
 olsrr::ols_plot_resid_stud_fit(trainingModel)
 
+
 #distPred <- predict(trainingModel, test_xy_set)
+#distPred
 #http://r-statistics.co/Linear-Regression.html
 fit <- lm(trainingModel, data=test_xy_set)
 summary(fit) # show results
+plot(fit)
 
-distPred
+olsrr::ols_plot_resid_stud_fit(fit)
+
+summary(trainingModel)
+
 
 print(trainingModel)
 trainingModel$coefnames
