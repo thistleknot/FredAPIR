@@ -62,7 +62,8 @@ train_ind <- sample(seq_len(nrow(x)), size = smp_size)
 #training x,y
 #train_x <- x[train_ind, ]
 #train_y <- y[train_ind, ]
-train_xy_set <- MyData[train_ind, c(xList,yField)]
+#train_xy_set <- MyData[train_ind, c(xList,yField)]
+
 #View(training_set)
 
 #testing x,y
@@ -73,30 +74,40 @@ test_xy_set <- MyData[-train_ind, c(xList,yField)]
 
 #http://r-statistics.co/Linear-Regression.html
 set.seed(100)  # setting seed to reproduce results of random sampling
+
+#not limited to just the first portion of the percent
 trainingRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+training2RowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+
+validationRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+testingRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+
 trainingData <- MyData[trainingRowIndex, ]  # model training data
-testData  <- MyData[-trainingRowIndex*.5, ]   # test data
-validationData  <- MyData[-trainingRowIndex*.5, ]   # test data
+training2Data <- MyData[training2RowIndex, ]  # model training data
 
-#rename column
-#http://rprogramming.net/rename-columns-in-r/
-#colnames(data)[colnames(data)=="old_name"] <- "new_name"
+train_xy_set <- trainingData[c(xList,yField)]
+train2_xy_set <- training2Data[c(xList,yField)]
 
-colnames(train_x)
-#colnames(trainingSet)
+vars <- c()
+names <- c(names, 'yFYield_CSUSHPINSA')
+#SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
+#removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
+#trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
+vars <- c('Q1','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POPTHM','xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
+names <- c(names, vars)
+
+trainingModel <- lm(train_xy_set[names])
+training2Model <- lm(train2_xy_set[names])
+
+testingData  <- MyData[-trainingRowIndex, ]   # test data
+
+validationData  <- MyData[-trainingRowIndex, ]   # test data
 
 #merge quickly
 #total <- merge(data frameA,data frameB,by="ID")
 
-#SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
-#removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
-#trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
-trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
-
-#trainingModel <- lm(trainingSet[SPSSReducedModel])
-#colnames(trainingSet[SPSSReducedModel])
-
 resultsAll <- ols_step_all_possible(trainingModel, p=.05)
+results2All <- ols_step_all_possible(training2Model, p=.05)
 
 resultsSubSet <- ols_step_best_subset(trainingModel, p=.05)
 
@@ -244,9 +255,7 @@ for (i in subset9$predictors) {
   vars <- scan(text = factor_list, what = "")
   
   names <- c()
-  
   names <- c(names, 'yFYield_CSUSHPINSA')
-  
   names <- c(names, vars)
   
   print(names)
@@ -260,4 +269,9 @@ for (i in subset9$predictors) {
   #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
   
 }
+
+#appendix
+#rename column
+#http://rprogramming.net/rename-columns-in-r/
+#colnames(data)[colnames(data)=="old_name"] <- "new_name"
 
