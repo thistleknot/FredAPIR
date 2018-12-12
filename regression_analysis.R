@@ -15,6 +15,7 @@ library(DescTools)
 library(olsrr)
 library(ggplot2)
 
+#https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
 PRESS <- function(linear.model) {
   pr <- residuals(linear.model)/(1 - lm.influence(linear.model)$hat)
@@ -95,9 +96,9 @@ trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_
 #trainingModel <- lm(trainingSet[SPSSReducedModel])
 #colnames(trainingSet[SPSSReducedModel])
 
-results <- ols_step_all_possible(trainingModel, p=.05)
+resultsAll <- ols_step_all_possible(trainingModel, p=.05)
 
-#results <- ols_step_best_subset(trainingModel, p=.05)
+resultsSubSet <- ols_step_best_subset(trainingModel, p=.05)
 
 #results <- ols_regress(trainingModel, p=.05)
 View(results)
@@ -175,25 +176,52 @@ plot(results)
 
 #https://dplyr.tidyverse.org/reference/filter.html
 
-#split in half based on distance (mallows-n)
+# Mallows Distance from n Filter
 mcp <- round(results$cp-results$n,0)
 mcp_floor <- min(mean(mcp),median(mcp))
 subset1 <- filter(results, results$cp-results$n <= mcp_floor)
 #View(subset1)
 
-#split in half by adjR (these are the most likely candidates to test)
-adjRfilter <- min(mean(subset1$adjr),median(subset1$adjr))
+#adj R^2 filter
+adjRfilter <- max(mean(subset1$adjr),median(subset1$adjr))
 subset2 <- filter(subset1, subset1$adjr >= adjRfilter)
-#View(subset2)
 
-#select smallest n
-sizefilter <- min(mean(subset1$n),median(subset1$n))
+#n filter
+sizefilter <- min(mean(subset2$n),median(subset2$n))
 subset3 <- filter(subset2, subset2$n <= sizefilter)
 View(subset3)
 
-#select lower half of errors
-errorFilter <- min(mean(subset2$msep),median(subset2$msep))
+#Erro Filter
+errorFilter <- min(mean(subset3$msep),median(subset3$msep))
 subset4 <- filter(subset3, subset3$msep <= errorFilter)
+
+#AIC Filter
+AICFilter <- min(mean(subset4$aic),median(subset4$aic))
+subset5 <- filter(subset4, subset4$aic <= AICFilter)
+View(subset5)
+
+#SBC and SBIC 
+SBICFilter <- min(mean(subset5$sbic),median(subset5$sbic))
+SBCFilter <- min(mean(subset5$sbc),median(subset5$sbc))
+subset6<- filter(subset5, subset5$sbc <= SBCFilter & subset5$sbic <= SBICFilter)
+View(subset6)
+
+#APC Filter Higher is better
+#https://olsrr.rsquaredacademy.com/reference/ols_apc.html
+APCFilter <- max(mean(subset6$apc),median(subset6$apc))
+subset7<- filter(subset6, subset6$apc >= APCFilter)
+
+#Hocking's SP, lower is better
+#https://rdrr.io/cran/olsrr/man/ols_hsp.html
+#Average prediction mean squared error
+HSPFilter <- min(mean(subset7$hsp),median(subset7$hsp))
+subset8<- filter(subset7, subset7$hsp <= HSPFilter)
+
+#Final Prediction Error
+FPEFilter <- min(mean(subset8$fpe),median(subset8$fpe))
+subset9<- filter(subset8, subset8$fpe <= FPEFilter)
+
+View(subset9)
 
 #plot(subset4)
 
