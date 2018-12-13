@@ -14,6 +14,9 @@ library(DescTools)
 library(olsrr)
 library(ggplot2)
 
+#mallows
+library(locfit)
+
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
 PRESS <- function(linear.model) {
@@ -209,14 +212,16 @@ View(factor_test_list)
 
 write.csv(factor_test_list,"factor_test_list.csv")
 
-#v_model <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr))
+#https://stackoverflow.com/questions/32712301/create-empty-data-frame-with-column-names-by-assigning-a-string-vector
 cv_model <- c()
-#cv_model <- cbind('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
-#colnames(cv_model) = c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
+cv_model <- data.frame(matrix(ncol=7,nrow=0))
+cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
 
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
-for (i in seq(factor_test_list)) {
+i=1
+for (i in seq(factor_test_list)) 
+{
  
   #10 CV Passes
   for (i in 1:4)
@@ -350,6 +355,12 @@ for (i in seq(factor_test_list)) {
     
     #cv_model <- rbind(v_model,c(factor_list, paste("cv", toString(i)), resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
     #without strue
+    cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
+    
+    #http://ugrad.stat.ubc.ca/R/library/locfit/html/cp.html
+    #need example use
+    #cp(valid1_xy_set[names],sig2=1)
+    
     cv_model <- rbind(cv_model,c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr))
     #View(cv_model)
     #needs to be same n size (would be useful across cross validations)
@@ -357,9 +368,9 @@ for (i in seq(factor_test_list)) {
     
   }
 
-  write.csv(cv_model,"cv_models.csv")
 }
-
+View(cv_model)
+write.csv(cv_model,"cv_models.csv")
 #appendix
 #rename column
 #http://rprogramming.net/rename-columns-in-r/
