@@ -56,18 +56,66 @@ nrow(y)
 set.seed(123)
 
 #used for exhaustive lists
-smp_size <- floor(0.5 * nrow(MyData))
+smp_size <- floor(.75 * nrow(MyData))
+training1 <- sample(smp_size, replace=F)
+training2 <- sample(smp_size, replace=F)
 
 #used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
-vld_size <- floor(0.5 * nrow(MyData))
+vld_size <- floor(1.0 * nrow(MyData))
+validation1 <- sample(vld_size, replace=F)
 
 #possible to define two splits?
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
-training <- sample(seq_len(nrow(x)), replace=F)
+#Boot strapped Cross Validation
+
+#bs_Size=floor(.1*nrow(x))
+#based on validation
+trainingSet <- c()
+
+#90% CV moving window over random sample
+t<-c()
+i=1
+#trainingSet <- sample(floor(nrow(x)* bs_Size), replace=F)
+for (i in 1:10)
+{
+  #print(i)
+  #rbind(trainingSet,trainingSet(sample(floor(seq_len(nrow(x))* bs_Size), replace=F)))
+  #rbind(trainingSet[i],c(sample(floor(nrow(x)* bs_Size), replace=F)))
+  
+  #trainingSet[i] <- c()
+  
+  ninT_Pct = floor(.9*length(validation1))
+  ten_Pct = ceiling(.1*length(validation1))
+  
+  #ninT_Pct+ten_Pct
+  
+  leftStart <- (floor((i-1)/10*length(validation1)))
+  print(leftStart)
+  
+  endLeftStart = leftStart+ten_Pct
+  
+  distanceFromEnd_EndLeftStart = length(validation1)- endLeftStart
+  
+  leftMakeup = ninT_Pct - distanceFromEnd_EndLeftStart
+  
+  movingSide = validation1[leftStart:(leftStart+ten_Pct+distanceFromEnd_EndLeftStart)]
+  makeupSide = validation1[1:leftMakeup]
+  print((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)
+  print(leftMakeup-1)
+  print(((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)+(leftMakeup-1))
+    
+  #print(distance)
+  print(movingSide)
+  print(makeupSide)
+  #print(validation1[floor(i/10*length(validation1)):length(validation1)])
+  
+  
+  #rbind(trainingSet,trainingSet)
+}
 
 #ensures I'm creating a partition based on randomized #'s
-train1_ind <- training[1:smp_size]
-train2_ind <- training[(smp_size+1):nrow(x)]
+#train1_ind <- training[1:smp_size*.75]
+#train2_ind <- training[(smp_size*.75+1):nrow(x)]
 #train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #used for creating models
@@ -86,10 +134,11 @@ test1_ind <- validation[(vld_size+1):nrow(x)]
 training1Data <- c()
 training2Data <- c()
 
-training1Data <- MyData[train1_ind, ]  # model training data
+#before I was using exactly half the data, now I'm using random sampling over the sample dataset and expecting overprovisioning to occur
+training1Data <- MyData[training1, ]  # model training data
 #ensures the model pulls from the other data
 #this makes my pooled datasets sourced from smaller data pools than the validation pool (akin to encryption: reverse randomized partitioning, allows for multiple partitions to be layered over a disk that holds data))
-training2Data <- MyData[train2_ind, ]  # model training data
+training2Data <- MyData[training2, ]  # model training data
 
 train1_xy_set <- c()
 train2_xy_set <- c()
@@ -218,7 +267,7 @@ write.csv(factor_test_list,"factor_test_list.csv")
 #v_model <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr))
 v_model <- c()
 s_true=0
-colnames(v_model) <- c('factor_list', 'RMSE', 'RSS', 'adjR', 's_true')
+colnames(v_model) <- c('factor_list', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 's_true')
 
 #a=0
 for (i in seq(factor_test_list)) {
@@ -275,7 +324,9 @@ for (i in seq(factor_test_list)) {
   
   #delta = (testdistPred - test1_xy_set[names][1])
   
-  #testPred <- predict(fit) * test1_xy_set[1]
+  testPred <- predict(fit) * test1_xy_set[1]
+  
+  if(testPred>0){s_true=1}else s_true=0
   
   
   #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
@@ -307,8 +358,10 @@ for (i in seq(factor_test_list)) {
   
   print(resultsAll)
 
-  v_model <- rbind(v_model,c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
+  v_model <- rbind(v_model,c(factor_list, resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
   
+  anova(trainingValidModel,fit)
+
 }
 
 #appendix
