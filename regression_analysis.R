@@ -87,8 +87,7 @@ training2Data <- c()
 training1Data <- MyData[train1_ind, ]  # model training data
 #ensures the model pulls from the other data
 #this makes my pooled datasets sourced from smaller data pools than the validation pool (akin to encryption: reverse randomized partitioning, allows for multiple partitions to be layered over a disk that holds data))
-training2Data <- MyData[!train1_ind, ]  # model training data
-
+training2Data <- MyData[train2_ind, ]  # model training data
 
 train1_xy_set <- c()
 train2_xy_set <- c()
@@ -102,7 +101,7 @@ test1_xy_set  <- c()
 valid1_xy_set <- MyData[valid1_ind, c(xList,yField)]
 
 #test set will be 25% of training set and will not be the value of the training set
-test1_xy_set <- MyData[!valid1_ind, c(xList,yField)]
+test1_xy_set <- MyData[test1_ind, c(xList,yField)]
 
 names <- c()
 vars <- c()
