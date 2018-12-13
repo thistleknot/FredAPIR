@@ -53,54 +53,47 @@ nrow(y)
 #https://stackoverflow.com/questions/17200114/how-to-split-data-into-training-testing-sets-using-sample-function/39403173
 ## 75% of the sample size
 #single split
-smp_size <- floor(0.75 * nrow(MyData))
-
 ## set the seed to make your partition reproducible
 set.seed(123)
+smp_size <- floor(0.5 * nrow(MyData))
+vld_size <- floor(0.75 * nrow(MyData))
 
 #possible to define two splits?
 train1_ind <- sample(seq_len(nrow(x)), size = smp_size)
-train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
+#train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #used for creating models
-valid1_ind <- sample(seq_len(nrow(x)), size = smp_size)
+valid1_ind <- sample(seq_len(nrow(x)), size = vld_size)
 
 #used for kfold bootstrap validation testing
-test1_ind <- sample(seq_len(nrow(x)), size = smp_size)
-
-#final RMSE should be evaluated against model that performs best against actual data.
-
-#training x,y
-#train_x <- x[train_ind, ]
-#train_y <- y[train_ind, ]
-#train_xy_set <- MyData[train_ind, c(xList,yField)]
-
-#View(training_set)
-
-#testing x,y
-#difference is -train
-#test_x <- x[-train_ind, ]
-#test_y <- y[-train_ind, ]
-#test_xy_set <- MyData[-train_ind, c(xList,yField)]
-
-test1_xy_set <- MyData[test1_ind, c(xList,yField)]
-
-#http://r-statistics.co/Linear-Regression.html
-#set.seed(100)  # setting seed to reproduce results of random sampling
+#test1_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #not limited to just the first portion of the percent
+#provides an index
+#http://r-statistics.co/Linear-Regression.html
 #training1RowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
-#training2RowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
 
-validationRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
-testingRowIndex <- sample(1:nrow(MyData), 0.6*nrow(MyData))  # row indices for training data
+training1Data <- c()
+training2Data <- c()
 
 training1Data <- MyData[train1_ind, ]  # model training data
-training2Data <- MyData[train2_ind, ]  # model training data
+#ensures the model pulls from the other data
+#this makes my pooled datasets sourced from smaller data pools than the validation pool (akin to encryption: reverse randomized partitioning, allows for multiple partitions to be layered over a disk that holds data))
+training2Data <- MyData[!train1_ind, ]  # model training data
+
+train1_xy_set <- c()
+train2_xy_set <- c()
 
 train1_xy_set <- training1Data[c(yField,xList)]
 train2_xy_set <- training2Data[c(yField,xList)]
-#View(train_xy_set)
+
+valid1_xy_set  <- c()
+test1_xy_set  <- c()
+
+valid1_xy_set <- MyData[valid1_ind, c(xList,yField)]
+
+#test set will be 25% of training set and will not be the value of the training set
+test1_xy_set <- MyData[!valid1_ind, c(xList,yField)]
 
 names <- c()
 vars <- c()
@@ -118,6 +111,9 @@ training1Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield
 #training2Model <- lm(train2_xy_set[names])
 training2Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train2_xy_set)
 
+olsrr::ols_plot_resid_stud_fit(training1Model)
+olsrr::ols_plot_resid_stud_fit(training2Model)
+
 table(is.na(train1_xy_set[names]))
 table(is.na(train2_xy_set[names]))
 
@@ -131,20 +127,17 @@ table(is.na(train2_xy_set[names]))
 summary(training1Model)
 summary(training2Model)
 
-#View(training2Model)
-#View(resultsAll)
 resultsAAll <- ols_step_all_possible(training1Model, p=.05)
-resultsAAll <- results1All
-resultsBAll <- ols_step_all_possible(training2Model, p=.05)
-resultsBAll <- results2All
+#results1SubSet <- ols_step_best_subset(training1Model, p=.05)
 
-results2All$predictors
+resultsBAll <- ols_step_all_possible(training2Model, p=.05)
 
 #Adj R^2 Filter
 adjR_Afilter <- max(mean(resultsAAll$adjr),median(resultsAAll$adjr))
 adjR_Bfilter <- max(mean(resultsBAll$adjr),median(resultsBAll$adjr))
 
-#Mallows Filter
+# Mallows Distance from n Filter, lower absolute distance from n is better
+#better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
 mcp_A_floor <- min(mean(resultsAAll$cp-resultsAAll$n),median(resultsAAll$cp-resultsAAll$n))
 mcp_B_floor <- min(mean(resultsBAll$cp-resultsBAll$n),median(resultsBAll$cp-resultsBAll$n))
 
@@ -195,12 +188,6 @@ subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAl
 factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
 View(factor_test_list)
 
-
-resultsSubSet <- ols_step_best_subset(trainingModel, p=.05)
-
-#results <- ols_regress(trainingModel, p=.05)
-#View(resultsAll)
-
 #https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
 #cross validation
 #rf = random forest
@@ -213,104 +200,20 @@ resultsSubSet <- ols_step_best_subset(trainingModel, p=.05)
 #flds <- createFolds(y, k = 10, list = TRUE, returnTrain = FALSE)
 #names(flds)[1] <- "train"
 
-#https://www.statmethods.net/stats/regression.html
-cv.lm(test1_xy_set, training1Model, m=3) # 3 fold cross-validation
-
-cv.lm(train1_xy_set, training1Model, m=3) # 3 fold cross-validation
-
-#https://www.rdocumentation.org/packages/EnvStats/versions/2.3.1/topics/predict.lm
-#how to do this for test data?
-traindistPred <- predict(training1Model)
-plot(traindistPred,training1Model$residuals)
-
-nrow(test1_xy_set)
-
-#studentized residuals
-olsrr::ols_plot_resid_stud_fit(training1Model)
-olsrr::ols_plot_resid_stud_fit(training2Model)
-hist(training1Model$residuals)
-hist(training2Model$residuals)
-summary(training1Model)
-summary(training2Model)
-
-#RMSE of training
-RMSE(training1Model)
-
-#RSS
-PRESS(training1Model)
-
-print(training1Model)
-training1Model$coefficients
-
-#http://r-statistics.co/Linear-Regression.html
-fit <- lm(training1Model, data=test1_xy_set)
-testdistPred <- predict(fit)
-plot(testdistPred,fit$residuals)
-#https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
-MAE(fit)
-RMSE(fit)
-MAPE(fit)
-MSE(fit)
-SMAPE(fit)
-PRESS(fit)
-
-#https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
-hist(fit$residuals)
-
-summary(fit) # show results
-plot(fit)
-
-olsrr::ols_plot_resid_stud_fit(fit)
-
-#results$predictors
-
 write.csv(results,"bestSubset.csv")
-
-summary.print(results)
-View(summary.print(results))
-
-#http://r-statistics.co/Linear-Regression.html
-
-plot(results)
-
-#https://dplyr.tidyverse.org/reference/filter.html
-
-# Mallows Distance from n Filter, lower absolute distance from n is better
-#better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
-
-nrow(results)
-
-#filter
-#https://blog.exploratory.io/filter-data-with-dplyr-76cf5f1a258e
-
-
-View(subset9)
-print(subset9)
-
-#best subselections
-print(resultsSubSet)
-View(resultsSubSet)
-
-#do an if check more than 1 row, if so, pick minimimum error
-if(nrow(subset9)>1) {
-  #subset3 <- filter(subset3, subset3$msep == min(subset3$msep))
-  print("yes")
-  #View(subset4)
-} else {
-  print("no")
-  #View(subset4)
-}
 
 plot(subset9$n,subset9$adjr)
 
 #subset9$predictors[1]
 
 a=0
-for (i in subset9$predictors) {
+for (i in factor_test_list) {
   factor_list <- c()
   var <- c()
   a=a+1
-  factor_list <- subset9$predictors[a]
+  factor_list <- factor_test_list[a]
+  
+  #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
   vars <- scan(text = factor_list, what = "")
   
   names <- c()
@@ -319,18 +222,74 @@ for (i in subset9$predictors) {
   
   print(names)
   
-  trainingModel <- lm(train_xy_set[names])
-  fit <- lm(trainingModel, data=test1_xy_set[names])
+  #using valid1 data
+  trainingValidModel <- lm(valid1_xy_set[names])
   
-  print(summary(fit))
+  trainValidPred <- predict(trainingValidModel)
+  
+  #plot(trainValidPred,trainingValidModel$residuals)
+  
+  #studentized residuals
+  hist(trainingValidModel$residuals)
+  summary(trainingValidModel)
+
+  #RMSE of training
+  RMSE(trainingValidModel)
+  
+  #RSS
+  PRESS(trainingValidModel)
+  
+  print(trainingValidModel)
+  trainingValidModel$coefficients
+  
+  #olsrr::ols_plot_resid_stud_fit(trainingValidModel)
+  
+  #cross validation
+  #https://www.statmethods.net/stats/regression.html
+  cv.lm(test1_xy_set, trainingValidModel, m=3) # 3 fold cross-validation
+
+  #http://r-statistics.co/Linear-Regression.html
+  
+  fit <- lm(trainingValidModel, data=test1_xy_set)
+  testdistPred <- predict(fit)
+  
+  #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
+  MAE(fit)
+  MAPE(fit)
+  MSE(fit)
+  SMAPE(fit)
+
+  #https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
+  hist(fit$residuals)
+  
+  print(summary(fit)) # show results
+  
+  #final RMSE should be evaluated against model that performs best against actual data.
   print(RMSE(fit))
+  print(PRESS(fit))
+  #plot(fit)
+  #olsrr::ols_plot_resid_stud_fit(fit)
   
-  #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
+  #plot(testdistPred,fit$residuals)
   
+  #provides residual stats
+  resultsAll <- ols_regress(fit, p=.05)
+  
+  print(resultsAll)
+  
+
 }
 
 #appendix
 #rename column
 #http://rprogramming.net/rename-columns-in-r/
 #colnames(data)[colnames(data)=="old_name"] <- "new_name"
+
+#http://r-statistics.co/Linear-Regression.html
+#https://www.rdocumentation.org/packages/EnvStats/versions/2.3.1/topics/predict.lm
+
+#https://dplyr.tidyverse.org/reference/filter.html
+
+#filter
+#https://blog.exploratory.io/filter-data-with-dplyr-76cf5f1a258e
 
