@@ -135,13 +135,15 @@ table(is.na(train2_xy_set[names]))
 summary(training1Model)
 summary(training2Model)
 
+#****
+#careful, takes a long time
 resultsAAll <- ols_step_all_possible(training1Model, p=.05)
-#results1SubSet <- ols_step_best_subset(training1Model, p=.05)
-
 resultsBAll <- ols_step_all_possible(training2Model, p=.05)
+#careful, takes a long time
+#****
 
 #Adj R^2 Filter
-adjR_Afilter <- max(mean(resultsAAll$adjr),median(resultsAAll$adjr))
+adjR_Afilter <-  max(mean(resultsAAll$adjr),median(resultsAAll$adjr))
 adjR_Bfilter <- max(mean(resultsBAll$adjr),median(resultsBAll$adjr))
 
 # Mallows Distance from n Filter, lower absolute distance from n is better
@@ -174,7 +176,7 @@ SBC_BFilter <- min(mean(resultsBAll$sbc),median(resultsBAll$sbc))
 #The higher the better for this criterion.
 APC_AFilter <- max(mean(resultsAAll$apc),median(resultsAAll$apc))
 APC_BFilter <- max(mean(resultsBAll$apc),median(resultsBAll$apc))
-#& (resultsAAll$apc > APCAFilter)
+#& (resultsAAll$apc > APC_AFilter)
 #decisive, heavily penalizes per factor
 
 #Hocking's SP, lower is better
@@ -191,10 +193,16 @@ FPE_BFilter <- min(mean(resultsBAll$fpe),median(resultsBAll$fpe))
 #AIC and BIC hold the same interpretation in terms of model comparison. That is, the larger difference in either AIC or BIC indicates stronger evidence for one model over the other 
 #(the lower the better). It's just the the AIC doesn't penalize the number of parameters as strongly as BIC.Jan 7, 2014
 
-subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter))
+#results in none... but does not change final outcome when inverted, so removed
+#(resultsAAll$apc > APC_AFilter) &
+subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter) ) 
+#  subsetA <- filter(resultsAAll,  ) 
+View(subsetA)
 hist(subsetA$adjr)
 subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
 hist(subsetB$adjr)
+
+max(subsetA$n,subsetB$n)
 
 factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
 View(factor_test_list)
@@ -214,16 +222,36 @@ View(factor_test_list)
 write.csv(factor_test_list,"factor_test_list.csv")
 
 #https://stackoverflow.com/questions/32712301/create-empty-data-frame-with-column-names-by-assigning-a-string-vector
+
+#used to hold all models
 cv_model <- c()
-cv_model <- data.frame(matrix(ncol=7,nrow=0))
+cv_model <- data.frame(matrix(ncol=8,nrow=0))
 cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
 colnames(cv_model) <- cnames
 
+sub_average_object <- c()
+sub_holding <- c()
+
+cv_colnames <- c('factor_list','RMSE', 'RSS', 'adjR', 'model_p_sign')
+
+sub_average_object <- data.frame(matrix(ncol=8,nrow=0))
+sub_average_object<- data.frame(matrix(ncol=5,nrow=0))
+sub_holding <- data.frame(matrix(ncol=5,nrow=divisions))
+
+colnames(sub_holding) <- cv_colnames
+colnames(sub_average_object) <- cv_colnames
+
+
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
-i=1
+#i=3
 for (i in seq(factor_test_list)) 
 {
+  #higher level index
+  sub_cv_model <- c()
+  sub_cv_model <- data.frame(matrix(ncol=5,nrow=0))
+  colnames(sub_cv_model) <- cv_colnames
+  
   factor_list <- c()
   var <- c()
   #a=a+1
@@ -232,14 +260,30 @@ for (i in seq(factor_test_list))
   #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
   vars <- scan(text = factor_list, what = "")
  
-  #4 CV Passes
-  for (i in 1:4)
+  # #divisions in CV Passes
+  
+  #lowest I can go is 4, 1/4 = 25% * 118 = ~30 for model building.  CV passes need to be done on completely different data.
+  #3 40 for training and results in 25 per fold
+  #4 results in a 25/75% split with 22 values per fold
+  
+  #3 is good for metric (triangulation) purposes, for my intended goal of finding centerpoints for models, triangles are perfect
+  divisions=3 #(5 results in a 20% training  n=14 records / 60% validation split, each validation will be same size as training on potentially overfitted, but by having holdout data, ovefit concern is removed)
+  
+  # used for averages
+  
+  #i=3
+  for (i in 1:divisions)
   {
     s_true=0
-    upper_Pct = floor(.75*length(validation1))
-    lower_Pct = ceiling(.25*length(validation1))
     
-    leftStart <- (floor((i-1)/4*length(validation1)))
+    lower = 1/divisions
+    upper = 1-lower
+    
+    #perfect example when rounding is okay, no lose of information occurs.  Well if both were equal to .5, that might be an issue.
+    upper_Pct = round(upper*length(validation1),0)
+    lower_Pct = round(lower*length(validation1),0)
+    
+    leftStart <- (floor((i-1)/divisions*length(validation1)))
     print(leftStart)
     
     endLeftStart = leftStart+lower_Pct
@@ -364,15 +408,13 @@ for (i in seq(factor_test_list))
     holding <- rbind(c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
     
     cv_model <- rbind(cv_model,holding)
-    
-    #needs to be same n size (would be useful across cross validations)
-    #anova(trainingValidModel,fit)
+    sub_holding <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
     
   }
   View(cv_model)
-
+  
 }
-View(cv_model)
+
 write.csv(cv_model,"cv_models.csv")
 #appendix
 #rename column
