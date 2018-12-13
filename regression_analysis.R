@@ -216,7 +216,8 @@ write.csv(factor_test_list,"factor_test_list.csv")
 #https://stackoverflow.com/questions/32712301/create-empty-data-frame-with-column-names-by-assigning-a-string-vector
 cv_model <- c()
 cv_model <- data.frame(matrix(ncol=7,nrow=0))
-cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
+cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
+colnames(cv_model) <- cnames
 
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
@@ -355,20 +356,20 @@ for (i in seq(factor_test_list))
     
     #cv_model <- rbind(v_model,c(factor_list, paste("cv", toString(i)), resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
     #without strue
-    cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
     
     #http://ugrad.stat.ubc.ca/R/library/locfit/html/cp.html
     #need example use
     #cp(valid1_xy_set[names],sig2=1)
     
-    holding <- rbind(c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr))
+    holding <- rbind(c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
     
     cv_model <- rbind(cv_model,holding)
-    View(cv_model)
+    
     #needs to be same n size (would be useful across cross validations)
     #anova(trainingValidModel,fit)
     
   }
+  View(cv_model)
 
 }
 View(cv_model)
