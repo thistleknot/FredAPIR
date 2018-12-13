@@ -146,8 +146,9 @@ adjR_Bfilter <- max(mean(resultsBAll$adjr),median(resultsBAll$adjr))
 
 # Mallows Distance from n Filter, lower absolute distance from n is better
 #better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
-mcp_A_floor <- min(mean(resultsAAll$cp-resultsAAll$n),median(resultsAAll$cp-resultsAAll$n))
-mcp_B_floor <- min(mean(resultsBAll$cp-resultsBAll$n),median(resultsBAll$cp-resultsBAll$n))
+#book says close to p+1
+mcp_A_floor <- min(mean(resultsAAll$cp-resultsAAll$n+1),median(resultsAAll$cp-resultsAAll$n+1))
+mcp_B_floor <- min(mean(resultsBAll$cp-resultsBAll$n+1),median(resultsBAll$cp-resultsBAll$n+1))
 
 #size filter
 size_A_floor <- min(mean(resultsAAll$n),median(resultsAAll$n))
@@ -222,8 +223,15 @@ cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'ad
 i=1
 for (i in seq(factor_test_list)) 
 {
+  factor_list <- c()
+  var <- c()
+  #a=a+1
+  factor_list <- factor_test_list[i]
+  
+  #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
+  vars <- scan(text = factor_list, what = "")
  
-  #10 CV Passes
+  #4 CV Passes
   for (i in 1:4)
   {
     s_true=0
@@ -257,14 +265,6 @@ for (i in seq(factor_test_list))
     
     fit<- c()
     trainingValidModel <-c()
-    
-    factor_list <- c()
-    var <- c()
-    #a=a+1
-    factor_list <- factor_test_list[i]
-    
-    #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
-    vars <- scan(text = factor_list, what = "")
     
     valid1_xy_set  <- c()
     test1_xy_set  <- c()
@@ -361,8 +361,10 @@ for (i in seq(factor_test_list))
     #need example use
     #cp(valid1_xy_set[names],sig2=1)
     
-    cv_model <- rbind(cv_model,c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr))
-    #View(cv_model)
+    holding <- rbind(c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr))
+    
+    cv_model <- rbind(cv_model,holding)
+    View(cv_model)
     #needs to be same n size (would be useful across cross validations)
     #anova(trainingValidModel,fit)
     
