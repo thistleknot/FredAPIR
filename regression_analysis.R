@@ -55,15 +55,23 @@ nrow(y)
 #single split
 ## set the seed to make your partition reproducible
 set.seed(123)
+
+#used for exhaustive lists
 smp_size <- floor(0.5 * nrow(MyData))
+
+#used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
 vld_size <- floor(0.75 * nrow(MyData))
 
 #possible to define two splits?
-train1_ind <- sample(seq_len(nrow(x)), size = smp_size)
+training <- sample(seq_len(nrow(x)), replace=F)
+train1_ind <- training[1:smp_size]
+train2_ind <- training[(smp_size+1):nrow(x)]
 #train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #used for creating models
-valid1_ind <- sample(seq_len(nrow(x)), size = vld_size)
+validation <- sample(seq_len(nrow(x)), replace=F)
+valid1_ind <- validation[1:vld_size]
+test1_ind <- validation[(vld_size+1):nrow(x)]
 
 #used for kfold bootstrap validation testing
 #test1_ind <- sample(seq_len(nrow(x)), size = smp_size)
@@ -80,6 +88,7 @@ training1Data <- MyData[train1_ind, ]  # model training data
 #ensures the model pulls from the other data
 #this makes my pooled datasets sourced from smaller data pools than the validation pool (akin to encryption: reverse randomized partitioning, allows for multiple partitions to be layered over a disk that holds data))
 training2Data <- MyData[!train1_ind, ]  # model training data
+
 
 train1_xy_set <- c()
 train2_xy_set <- c()
