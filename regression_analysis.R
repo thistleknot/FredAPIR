@@ -208,11 +208,7 @@ View(factor_test_list)
 #flds <- createFolds(y, k = 10, list = TRUE, returnTrain = FALSE)
 #names(flds)[1] <- "train"
 
-write.csv(results,"bestSubset.csv")
-
-plot(subset9$n,subset9$adjr)
-
-#subset9$predictors[1]
+write.csv(factor_test_list,"factor_test_list.csv")
 
 a=0
 for (i in factor_test_list) {
@@ -278,7 +274,7 @@ for (i in factor_test_list) {
   #plot(fit)
   #olsrr::ols_plot_resid_stud_fit(fit)
   
-  #plot(testdistPred,fit$residuals)
+  plot(testdistPred,fit$residuals)
   
   #provides residual stats
   resultsAll <- ols_regress(fit, p=.05)
