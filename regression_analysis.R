@@ -56,48 +56,15 @@ nrow(y)
 set.seed(123)
 
 #used for exhaustive lists (oversamples)
+#possible to define two splits?
 smp_size <- floor(.75 * nrow(MyData))
+#https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 training1 <- sample(smp_size, replace=F)
 training2 <- sample(smp_size, replace=F)
 
 #used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
 vld_size <- floor(1.0 * nrow(MyData))
 validation1 <- sample(vld_size, replace=F)
-
-#possible to define two splits?
-#https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
-#Boot strapped Cross Validation
-
-#90% CV moving window over Validation1 random sample
-for (i in 1:10)
-{
-  ninT_Pct = floor(.9*length(validation1))
-  ten_Pct = ceiling(.1*length(validation1))
-  
-  leftStart <- (floor((i-1)/10*length(validation1)))
-  print(leftStart)
-  
-  endLeftStart = leftStart+ten_Pct
-  
-  distanceFromEnd_EndLeftStart = length(validation1)- endLeftStart
-  
-  leftMakeup = ninT_Pct - distanceFromEnd_EndLeftStart
-  
-  movingSide = validation1[leftStart:(leftStart+ten_Pct+distanceFromEnd_EndLeftStart)]
-  makeupSide = validation1[1:leftMakeup]
-  print((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)
-  print(leftMakeup)
-  print(((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)+(leftMakeup))
-    
-  #print(movingSide)
-  #print(makeupSide)
-  
-  combined_list=c(movingSide,makeupSide)
-  #print(combined_list)
-  training = combined_list[1:ninT_Pct]
-  validation = combined_list[(ninT_Pct+1):length(combined_list)]
-  print(validation)
-}
 
 #ensures I'm creating a partition based on randomized #'s
 #train1_ind <- training[1:smp_size*.75]
@@ -131,14 +98,6 @@ train2_xy_set <- c()
 
 train1_xy_set <- training1Data[c(yField,xList)]
 train2_xy_set <- training2Data[c(yField,xList)]
-
-valid1_xy_set  <- c()
-test1_xy_set  <- c()
-
-valid1_xy_set <- MyData[valid1_ind, c(xList,yField)]
-
-#test set will be 25% of training set and will not be the value of the training set
-test1_xy_set <- MyData[test1_ind, c(yField,xList)]
 
 names <- c()
 vars <- c()
@@ -251,102 +210,148 @@ View(factor_test_list)
 write.csv(factor_test_list,"factor_test_list.csv")
 
 #v_model <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr))
-v_model <- c()
-s_true=0
-colnames(v_model) <- c('factor_list', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 's_true')
+cv_model <- c()
+colnames(cv_model) <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 's_true')
 
+#10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
 for (i in seq(factor_test_list)) {
-  
-  fit<- c()
-  trainingValidModel <-c()
-  
-  factor_list <- c()
-  var <- c()
-  #a=a+1
-  factor_list <- factor_test_list[i]
-  
-  #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
-  vars <- scan(text = factor_list, what = "")
-  
-  names <- c()
-  names <- c(names, 'yFYield_CSUSHPINSA')
-  names <- c(names, vars)
-  
-  print(names)
-  names2 <-c()
-  names2 <- names
-  #using valid1 data
-  trainingValidModel <- lm(valid1_xy_set[names])
-  fit <- lm(trainingValidModel, data=test1_xy_set[names2])
-  testdistPred <- predict(fit)
-  
-  trainValidPred <- predict(trainingValidModel)
-  
-  #plot(trainValidPred,trainingValidModel$residuals)
-  
-  #studentized residuals
-  hist(trainingValidModel$residuals)
-  summary(trainingValidModel)
-
-  #RMSE of training
-  RMSE(trainingValidModel)
-  
-  #RSS
-  PRESS(trainingValidModel)
-  
-  print(trainingValidModel)
-  trainingValidModel$coefficients
-  
-  olsrr::ols_plot_resid_stud_fit(trainingValidModel)
-  
-  #cross validation
-  #https://www.statmethods.net/stats/regression.html
-  layout(matrix(c(1),1))
-  #cv.lm(test1_xy_set[names], trainingValidModel, m=2, plotit="Residual") # 3 fold cross-validation
-  #cv.lm(test1_xy_set[names], trainingValidModel, m=3, plotit="Residual") # 3 fold cross-validation
-  
-  #http://r-statistics.co/Linear-Regression.html
-  
-  #delta = (testdistPred - test1_xy_set[names][1])
-  
-  testPred <- predict(fit) * test1_xy_set[1]
-  
-  if(testPred>0){s_true=1}else s_true=0
-  
-  
-  #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
-  MAE(fit)
-  MAPE(fit)
-  MSE(fit)
-  SMAPE(fit)
-
-  #https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
-  hist(fit$residuals)
-  
-  print(summary(fit)) # show results
-  
-  #final RMSE should be evaluated against model that performs best against actual data.
-  
-  print(RMSE(fit))
-  print(PRESS(fit))
-  
-  layout(matrix(c(1,2,3,4),2,2))
-  plot(fit)
-  
-  layout(matrix(c(1),1))
-  olsrr::ols_plot_resid_stud_fit(fit)
-  
-  plot(testdistPred,fit$residuals)
-  
-  #provides residual stats
-  resultsAll <- ols_regress(fit, p=.05)
-  
-  print(resultsAll)
-
-  v_model <- rbind(v_model,c(factor_list, resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
-  
-  anova(trainingValidModel,fit)
+ 
+  #10 CV Passes
+  for (i in 1:4)
+  {
+    s_true=0
+    upper_Pct = floor(.75*length(validation1))
+    lower_Pct = ceiling(.25*length(validation1))
+    
+    leftStart <- (floor((i-1)/4*length(validation1)))
+    print(leftStart)
+    
+    endLeftStart = leftStart+lower_Pct
+    
+    distanceFromEnd_EndLeftStart = length(validation1)- endLeftStart
+    
+    leftMakeup = upper_Pct - distanceFromEnd_EndLeftStart
+    
+    movingSide = validation1[leftStart:(leftStart+lower_Pct+distanceFromEnd_EndLeftStart)]
+    makeupSide = validation1[1:leftMakeup]
+    print((leftStart+lower_Pct+distanceFromEnd_EndLeftStart)-leftStart)
+    print(leftMakeup)
+    print(((leftStart+lower_Pct+distanceFromEnd_EndLeftStart)-leftStart)+(leftMakeup))
+    
+    #print(movingSide)
+    #print(makeupSide)
+    
+    combined_list=c(movingSide,makeupSide)
+    #print(combined_list)
+    training = combined_list[1:upper_Pct]
+    validation = combined_list[(upper_Pct+1):length(combined_list)]
+    
+    print(validation)
+    
+    fit<- c()
+    trainingValidModel <-c()
+    
+    factor_list <- c()
+    var <- c()
+    #a=a+1
+    factor_list <- factor_test_list[i]
+    
+    #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
+    vars <- scan(text = factor_list, what = "")
+    
+    valid1_xy_set  <- c()
+    test1_xy_set  <- c()
+    
+    valid1_xy_set <- MyData[training, c(xList,yField)]
+    
+    #test set will be 25% of training set and will not be the value of the training set
+    test1_xy_set <- MyData[validation, c(yField,xList)]
+    
+    names <- c()
+    names <- c(names, 'yFYield_CSUSHPINSA')
+    names <- c(names, vars)
+    
+    print(names)
+    
+    #names2 was created to fix a bug with a reserved name in a later function
+    names2 <-c()
+    names2 <- names
+    #using valid1 data
+    trainingValidModel <- lm(valid1_xy_set[names])
+    fit <- lm(trainingValidModel, data=test1_xy_set[names2])
+    testdistPred <- predict(fit)
+    
+    trainValidPred <- predict(trainingValidModel)
+    
+    #plot(trainValidPred,trainingValidModel$residuals)
+    
+    #studentized residuals
+    hist(trainingValidModel$residuals)
+    summary(trainingValidModel)
+    
+    #RMSE of training
+    RMSE(trainingValidModel)
+    
+    #RSS
+    PRESS(trainingValidModel)
+    
+    print(trainingValidModel)
+    trainingValidModel$coefficients
+    
+    olsrr::ols_plot_resid_stud_fit(trainingValidModel)
+    
+    #cross validation
+    #https://www.statmethods.net/stats/regression.html
+    layout(matrix(c(1),1))
+    #cv.lm(test1_xy_set[names], trainingValidModel, m=2, plotit="Residual") # 3 fold cross-validation
+    #cv.lm(test1_xy_set[names], trainingValidModel, m=3, plotit="Residual") # 3 fold cross-validation
+    
+    #Boot strapped Cross Validation
+    #90% CV moving window over Validation1 random sample    
+    
+    #http://r-statistics.co/Linear-Regression.html
+    
+    #delta = (testdistPred - test1_xy_set[names][1])
+    
+    testPred <- predict(fit) * test1_xy_set[1]
+    
+    if(testPred>0){s_true=1}else s_true=0
+    
+    #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
+    MAE(fit)
+    MAPE(fit)
+    MSE(fit)
+    SMAPE(fit)
+    
+    #https://stats.stackexchange.com/questions/248603/how-can-one-compute-the-press-diagnostic
+    hist(fit$residuals)
+    
+    print(summary(fit)) # show results
+    
+    #final RMSE should be evaluated against model that performs best against actual data.
+    
+    print(RMSE(fit))
+    print(PRESS(fit))
+    
+    layout(matrix(c(1,2,3,4),2,2))
+    plot(fit)
+    
+    layout(matrix(c(1),1))
+    olsrr::ols_plot_resid_stud_fit(fit)
+    
+    plot(testdistPred,fit$residuals)
+    
+    #provides residual stats
+    resultsAll <- ols_regress(fit, p=.05)
+    
+    print(resultsAll)
+    
+    cv_model <- rbind(v_model,c(factor_list, paste("cv", toString(i)), resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
+    
+    #anova(trainingValidModel,fit)
+    
+  }
 
 }
 
