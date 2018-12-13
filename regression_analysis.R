@@ -1,4 +1,3 @@
-
 #cross validation
 library(caret)
 library(DAAG)
@@ -60,10 +59,13 @@ set.seed(123)
 smp_size <- floor(0.5 * nrow(MyData))
 
 #used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
-vld_size <- floor(0.75 * nrow(MyData))
+vld_size <- floor(0.5 * nrow(MyData))
 
 #possible to define two splits?
+#https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 training <- sample(seq_len(nrow(x)), replace=F)
+
+#ensures I'm creating a partition based on randomized #'s
 train1_ind <- training[1:smp_size]
 train2_ind <- training[(smp_size+1):nrow(x)]
 #train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
@@ -101,7 +103,7 @@ test1_xy_set  <- c()
 valid1_xy_set <- MyData[valid1_ind, c(xList,yField)]
 
 #test set will be 25% of training set and will not be the value of the training set
-test1_xy_set <- MyData[test1_ind, c(xList,yField)]
+test1_xy_set <- MyData[test1_ind, c(yField,xList)]
 
 names <- c()
 vars <- c()
@@ -118,8 +120,9 @@ training1Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield
 
 #training2Model <- lm(train2_xy_set[names])
 training2Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train2_xy_set)
-
+layout(matrix(c(1,2,3,4),2,2))
 olsrr::ols_plot_resid_stud_fit(training1Model)
+layout(matrix(c(1,2,3,4),2,2))
 olsrr::ols_plot_resid_stud_fit(training2Model)
 
 table(is.na(train1_xy_set[names]))
@@ -191,7 +194,9 @@ FPE_BFilter <- min(mean(resultsBAll$fpe),median(resultsBAll$fpe))
 #(the lower the better). It's just the the AIC doesn't penalize the number of parameters as strongly as BIC.Jan 7, 2014
 
 subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter))
+hist(subsetA$adjr)
 subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
+hist(subsetB$adjr)
 
 factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
 View(factor_test_list)
@@ -210,12 +215,21 @@ View(factor_test_list)
 
 write.csv(factor_test_list,"factor_test_list.csv")
 
-a=0
-for (i in factor_test_list) {
+#v_model <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr))
+v_model <- c()
+s_true=0
+colnames(v_model) <- c('factor_list', 'RMSE', 'RSS', 'adjR', 's_true')
+
+#a=0
+for (i in seq(factor_test_list)) {
+  
+  fit<- c()
+  trainingValidModel <-c()
+  
   factor_list <- c()
   var <- c()
-  a=a+1
-  factor_list <- factor_test_list[a]
+  #a=a+1
+  factor_list <- factor_test_list[i]
   
   #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
   vars <- scan(text = factor_list, what = "")
@@ -225,9 +239,12 @@ for (i in factor_test_list) {
   names <- c(names, vars)
   
   print(names)
-  
+  names2 <-c()
+  names2 <- names
   #using valid1 data
   trainingValidModel <- lm(valid1_xy_set[names])
+  fit <- lm(trainingValidModel, data=test1_xy_set[names2])
+  testdistPred <- predict(fit)
   
   trainValidPred <- predict(trainingValidModel)
   
@@ -246,16 +263,20 @@ for (i in factor_test_list) {
   print(trainingValidModel)
   trainingValidModel$coefficients
   
-  #olsrr::ols_plot_resid_stud_fit(trainingValidModel)
+  olsrr::ols_plot_resid_stud_fit(trainingValidModel)
   
   #cross validation
   #https://www.statmethods.net/stats/regression.html
-  cv.lm(test1_xy_set, trainingValidModel, m=3) # 3 fold cross-validation
-
+  layout(matrix(c(1),1))
+  #cv.lm(test1_xy_set[names], trainingValidModel, m=2, plotit="Residual") # 3 fold cross-validation
+  #cv.lm(test1_xy_set[names], trainingValidModel, m=3, plotit="Residual") # 3 fold cross-validation
+  
   #http://r-statistics.co/Linear-Regression.html
   
-  fit <- lm(trainingValidModel, data=test1_xy_set)
-  testdistPred <- predict(fit)
+  #delta = (testdistPred - test1_xy_set[names][1])
+  
+  #testPred <- predict(fit) * test1_xy_set[1]
+  
   
   #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
   MAE(fit)
@@ -269,10 +290,15 @@ for (i in factor_test_list) {
   print(summary(fit)) # show results
   
   #final RMSE should be evaluated against model that performs best against actual data.
+  
   print(RMSE(fit))
   print(PRESS(fit))
-  #plot(fit)
-  #olsrr::ols_plot_resid_stud_fit(fit)
+  
+  layout(matrix(c(1,2,3,4),2,2))
+  plot(fit)
+  
+  layout(matrix(c(1),1))
+  olsrr::ols_plot_resid_stud_fit(fit)
   
   plot(testdistPred,fit$residuals)
   
@@ -280,8 +306,9 @@ for (i in factor_test_list) {
   resultsAll <- ols_regress(fit, p=.05)
   
   print(resultsAll)
-  
 
+  v_model <- rbind(v_model,c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
+  
 }
 
 #appendix
