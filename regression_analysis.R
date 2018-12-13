@@ -55,7 +55,7 @@ nrow(y)
 ## set the seed to make your partition reproducible
 set.seed(123)
 
-#used for exhaustive lists
+#used for exhaustive lists (oversamples)
 smp_size <- floor(.75 * nrow(MyData))
 training1 <- sample(smp_size, replace=F)
 training2 <- sample(smp_size, replace=F)
@@ -68,26 +68,11 @@ validation1 <- sample(vld_size, replace=F)
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 #Boot strapped Cross Validation
 
-#bs_Size=floor(.1*nrow(x))
-#based on validation
-trainingSet <- c()
-
-#90% CV moving window over random sample
-t<-c()
-i=1
-#trainingSet <- sample(floor(nrow(x)* bs_Size), replace=F)
+#90% CV moving window over Validation1 random sample
 for (i in 1:10)
 {
-  #print(i)
-  #rbind(trainingSet,trainingSet(sample(floor(seq_len(nrow(x))* bs_Size), replace=F)))
-  #rbind(trainingSet[i],c(sample(floor(nrow(x)* bs_Size), replace=F)))
-  
-  #trainingSet[i] <- c()
-  
   ninT_Pct = floor(.9*length(validation1))
   ten_Pct = ceiling(.1*length(validation1))
-  
-  #ninT_Pct+ten_Pct
   
   leftStart <- (floor((i-1)/10*length(validation1)))
   print(leftStart)
@@ -101,16 +86,17 @@ for (i in 1:10)
   movingSide = validation1[leftStart:(leftStart+ten_Pct+distanceFromEnd_EndLeftStart)]
   makeupSide = validation1[1:leftMakeup]
   print((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)
-  print(leftMakeup-1)
-  print(((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)+(leftMakeup-1))
+  print(leftMakeup)
+  print(((leftStart+ten_Pct+distanceFromEnd_EndLeftStart)-leftStart)+(leftMakeup))
     
-  #print(distance)
-  print(movingSide)
-  print(makeupSide)
-  #print(validation1[floor(i/10*length(validation1)):length(validation1)])
+  #print(movingSide)
+  #print(makeupSide)
   
-  
-  #rbind(trainingSet,trainingSet)
+  combined_list=c(movingSide,makeupSide)
+  #print(combined_list)
+  training = combined_list[1:ninT_Pct]
+  validation = combined_list[(ninT_Pct+1):length(combined_list)]
+  print(validation)
 }
 
 #ensures I'm creating a partition based on randomized #'s
@@ -119,8 +105,8 @@ for (i in 1:10)
 #train2_ind <- sample(seq_len(nrow(x)), size = smp_size)
 
 #used for creating models
-validation <- sample(seq_len(nrow(x)), replace=F)
-valid1_ind <- validation[1:vld_size]
+#validation <- sample(seq_len(nrow(x)), replace=F)
+#valid1_ind <- validation[1:vld_size]
 test1_ind <- validation[(vld_size+1):nrow(x)]
 
 #used for kfold bootstrap validation testing
