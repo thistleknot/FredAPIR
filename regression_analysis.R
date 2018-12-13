@@ -211,7 +211,8 @@ write.csv(factor_test_list,"factor_test_list.csv")
 
 #v_model <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr))
 cv_model <- c()
-colnames(cv_model) <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 's_true')
+#cv_model <- cbind('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
+#colnames(cv_model) = c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR')
 
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
@@ -314,9 +315,9 @@ for (i in seq(factor_test_list)) {
     
     #delta = (testdistPred - test1_xy_set[names][1])
     
-    testPred <- predict(fit) * test1_xy_set[1]
+    #testPred <- predict(fit) * test1_xy_set[1]
     
-    if(testPred>0){s_true=1}else s_true=0
+    #if(testPred>0){s_true=1}else s_true=0
     
     #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
     MAE(fit)
@@ -347,12 +348,16 @@ for (i in seq(factor_test_list)) {
     
     print(resultsAll)
     
-    cv_model <- rbind(v_model,c(factor_list, paste("cv", toString(i)), resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
-    
+    #cv_model <- rbind(v_model,c(factor_list, paste("cv", toString(i)), resultsAll$model, resultsAll$pvalues, RMSE(fit), PRESS(fit), resultsAll$adjr, s_true))
+    #without strue
+    cv_model <- rbind(cv_model,c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr))
+    #View(cv_model)
+    #needs to be same n size (would be useful across cross validations)
     #anova(trainingValidModel,fit)
     
   }
 
+  write.csv(cv_model,"cv_models.csv")
 }
 
 #appendix
