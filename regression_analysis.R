@@ -222,7 +222,7 @@ write.csv(factor_test_list,"factor_test_list.csv")
 
 #used to hold all models
 cv_model <- c()
-cv_model <- data.frame(matrix(ncol=8,nrow=0))
+cv_model <- data.frame(matrix(ncol=9,nrow=0))
 cnames <- c('factor_list', 'n', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
 colnames(cv_model) <- cnames
 
@@ -231,9 +231,9 @@ sub_holding <- c()
 
 cv_colnames <- c('factor_list','n','RMSE', 'RSS', 'adjR', 'model_p_sign')
 
-sub_average_object <- data.frame(matrix(ncol=8,nrow=0))
-sub_average_object<- data.frame(matrix(ncol=5,nrow=0))
-sub_holding <- data.frame(matrix(ncol=5,nrow=divisions))
+sub_average_object <- data.frame(matrix(ncol=9,nrow=0))
+sub_average_object<- data.frame(matrix(ncol=6,nrow=0))
+sub_holding <- data.frame(matrix(ncol=6,nrow=divisions))
 
 colnames(sub_holding) <- cv_colnames
 colnames(sub_average_object) <- cv_colnames
@@ -245,7 +245,7 @@ for (i in seq(factor_test_list))
 {
   #higher level index
   sub_cv_model <- c()
-  sub_cv_model <- data.frame(matrix(ncol=5,nrow=0))
+  sub_cv_model <- data.frame(matrix(ncol=6,nrow=0))
   colnames(sub_cv_model) <- cv_colnames
   
   factor_list <- c()
