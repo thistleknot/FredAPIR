@@ -223,13 +223,13 @@ write.csv(factor_test_list,"factor_test_list.csv")
 #used to hold all models
 cv_model <- c()
 cv_model <- data.frame(matrix(ncol=8,nrow=0))
-cnames <- c('factor_list', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
+cnames <- c('factor_list', 'n', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
 colnames(cv_model) <- cnames
 
 sub_average_object <- c()
 sub_holding <- c()
 
-cv_colnames <- c('factor_list','RMSE', 'RSS', 'adjR', 'model_p_sign')
+cv_colnames <- c('factor_list','n','RMSE', 'RSS', 'adjR', 'model_p_sign')
 
 sub_average_object <- data.frame(matrix(ncol=8,nrow=0))
 sub_average_object<- data.frame(matrix(ncol=5,nrow=0))
@@ -351,17 +351,18 @@ for (i in seq(factor_test_list))
     #need example use
     #cp(valid1_xy_set[names],sig2=1)
     
-    holding <- rbind(c(factor_list, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
+    holding <- rbind(c(factor_list, resultsAll$n, paste("cv", toString(i)), toString(resultsAll$betas), toString(resultsAll$pvalues), RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
     
     #final RMSE should be evaluated against model that performs best against actual data.
     cv_model <- rbind(cv_model,holding)
-    sub_holding <- rbind(c(factor_list, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
+    sub_holding <- rbind(c(factor_list, resultsAll$n, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
     
   }
   View(cv_model)
   
 }
 
+colnames(cv_model) <- cnames
 write.csv(cv_model,"cv_models.csv")
 #appendix
 #rename column
