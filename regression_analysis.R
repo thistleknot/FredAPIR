@@ -268,7 +268,7 @@ for (i in seq(factor_test_list))
   # used for averages
   
   #i=3
-  for (i in 1:3)
+  for (i in 1:10)
   {
     s_true=0
 
