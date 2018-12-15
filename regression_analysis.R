@@ -222,9 +222,17 @@ write.csv(factor_test_list,"factor_test_list.csv")
 
 #used to hold all models
 cv_model <- c()
+
+#due to the nature of ad-hoc runs, the seed could be in any state unless known to have run the code from start to finish
+#having the seed here ensures static results each run [even if ad hoc]
+set.seed(123)
 cv_model <- data.frame(matrix(ncol=9,nrow=0))
+cv_model10 <- data.frame(matrix(ncol=9,nrow=0))
+cv_model10_log <- cv_model10 <- data.frame(matrix(ncol=9,nrow=0))
 cnames <- c('factor_list', 'n', 'cv', 'co-efficients', 'p-values', 'RMSE', 'RSS', 'adjR', 'model_p_sign')
 colnames(cv_model) <- cnames
+colnames(cv_model10) <- cnames
+colnames(cv_model10_log) <- cnames
 
 sub_average_object <- c()
 sub_holding <- c()
@@ -355,15 +363,35 @@ for (i in seq(factor_test_list))
     
     #final RMSE should be evaluated against model that performs best against actual data.
     cv_model <- rbind(cv_model,holding)
-    sub_holding <- rbind(c(factor_list, resultsAll$n, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
-    
+    #sub_holding <- rbind(c(factor_list, resultsAll$n, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
+    cv_model10 <- rbind(cv_model10,holding)
   }
-  View(cv_model)
+
+  #RMSE
+  #https://stackoverflow.com/questions/18045096/r-error-sum-not-meaningful-for-factors
+  #R error “sum not meaningful for factors”
+  #RMSE vs RSS
+  #https://stats.stackexchange.com/questions/206274/relationship-between-rmse-and-rss
+  #Having the mathematical derivations, you might ask yourself why use one measure over the other to assess the performance of a given model? You could use either, but 
+  #the advantage of RMSE is that it will come out in more interpretable units. 
+  #For example, if you were building a model that used house features to predict house prices, 
+  #RSS would come out in dollars squared and would be a really huge number. 
+  #RMSE would come out in dollars and its magnitude would make more sense given the range of your house price predictions.
+  #Mine are not in dollars, but values based on returns [of already normalized CSUSHPINSA]
   
+  #reset cv_model10
+  
+  holding <- rbind(c(factor_list, resultsAll$n, paste("cv", toString(i)), "betas", "pvalues", mean(as.numeric(as.character(cv_model10[,6]))),mean(as.numeric(as.character(cv_model10[,7]))),mean(as.numeric(as.character(cv_model10[,8]))),mean(as.numeric(as.character(cv_model10[,9])))))
+  #colnames(cv_model10_log) <- cnames
+  cv_model10_log <- rbind(cv_model10_log,holding)
+  View(cv_model10_log)
+  
+  #reset cv_model10
+  cv_model10 <- c()
 }
 
-colnames(cv_model) <- cnames
-write.csv(cv_model,"cv_models.csv")
+colnames(cv_model10_log) <- cnames
+write.csv(cv_model10_log,"cv_models.csv")
 #appendix
 #rename column
 #http://rprogramming.net/rename-columns-in-r/
