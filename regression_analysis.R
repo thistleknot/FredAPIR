@@ -24,6 +24,11 @@ PRESS <- function(linear.model) {
   sum(pr^2)
 }
 
+ascending=function(var){  
+  products_ascending = products[order(products[[var]]),]            
+  return(products_ascending)
+}
+
 MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
 fieldOfInterest='yFYield_CSUSHPINSA'
@@ -136,6 +141,7 @@ adjR_Afilter <-  max(mean(resultsAAll$adjr),median(resultsAAll$adjr))
 adjR_Bfilter <-  max(mean(resultsBAll$adjr),median(resultsBAll$adjr))
 adjR_Cfilter <-  max(mean(resultsCAll$adjr),median(resultsCAll$adjr))
 
+#Mallows' Cp-statistic estimates the size of the bias that is introduced into the predicted responses by having an underspecified model.
 # Mallows Distance from n Filter, lower absolute distance from n is better
 #better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
 #book says close to p+1
@@ -390,8 +396,37 @@ for (i in seq(factor_test_list))
   cv_model10 <- c()
 }
 
-colnames(cv_model10_log) <- cnames
-write.csv(cv_model10_log,"cv_models.csv")
+RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.numeric(as.character(cv_model10_log$RMSE)))
+
+topPicks <- filter(cv_model10_log,  (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
+hist((as.numeric(as.character(cv_model10_log$RMSE)) ))
+hist((as.numeric(as.character(topPicks$RMSE)) ))
+colnames(topPicks) <- cnames
+#trying to order by RMSE
+
+#View(cbind(topPicks$factor_list, topPicks$RMSE))
+#nogo
+
+#test = ascending((topPicks$RMSE),topPicks)
+
+#index of order
+#order(topPicks['RMSE'])
+
+#order(as.numeric(as.character(topPicks$'RMSE')))
+
+#manual sort.... but order is not confirmed as correct
+for (i in 1:nrow(topPicks))
+{
+  
+}
+
+
+#View()
+
+
+#wish to tabulate picked factor names
+#as.table(topPicks)
+write.csv(topPicks,"cv_models.csv")
 #appendix
 #rename column
 #http://rprogramming.net/rename-columns-in-r/
