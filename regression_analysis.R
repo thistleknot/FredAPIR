@@ -30,6 +30,7 @@ ascending=function(var){
 }
 
 MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
+View(MyData)
 
 fieldOfInterest='yFYield_CSUSHPINSA'
 
@@ -71,6 +72,8 @@ nrow(y)
 smp_size <- floor(1/2 * nrow(MyData))
 vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
+
+View(colnames(MyData))
 
 set.seed(123)
 for (i in 1:5)
@@ -316,7 +319,9 @@ for (i in seq(factor_test_list))
     names2 <-c()
     names2 <- names
     #using valid1 data
-    trainingValidModel <- lm(valid1_xy_set[names])
+    colnames(valid1_xy_set)
+    trainingValidModel <- lm(fieldOfInterest~., valid1_xy_set[names2])
+    
     fit <- lm(trainingValidModel, data=test1_xy_set[names2])
     testdistPred <- predict(fit)
     trainValidPred <- predict(trainingValidModel)
@@ -400,7 +405,7 @@ for (i in seq(factor_test_list))
 }
 
 #within 1 standard deviation from the minimum, but also at least 1 standard deviation away from the mean
-RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+mean(as.numeric(as.character(cv_model10_log$RMSE)))
+RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.numeric(as.character(cv_model10_log$RMSE)))
 
 topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
 
