@@ -285,7 +285,7 @@ for (i in seq(factor_test_list))
   # used for averages
   
   #i=3
-  for (i in 1:10)
+  for (i in 1:2)
   {
     s_true=0
 
@@ -399,9 +399,10 @@ for (i in seq(factor_test_list))
   cv_model10 <- c()
 }
 
-RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.numeric(as.character(cv_model10_log$RMSE)))
+#within 1 standard deviation from the minimum, but also at least 1 standard deviation away from the mean
+RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+mean(as.numeric(as.character(cv_model10_log$RMSE)))
 
-topPicks <- filter(cv_model10_log,  (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
+topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
 
 colnames(cv_model10_log) <- cnames
 colnames(topPicks) <- cnames
