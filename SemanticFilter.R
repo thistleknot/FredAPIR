@@ -39,10 +39,14 @@ library("PerformanceAnalytics")
 library("mondate")
 library(anytime)
 library(lubridate)
+library(reticulate)
 
 require(ggplot2)
 require(gridExtra)
 require(zoo)
+
+use_python("/usr/bin/python3")
+os <- import("os")
 
 #api.key <- read_file("apiKey.txt")
 api.key = '3ee8b91b17078df0b51bea5c9cfd11c6'
@@ -570,6 +574,7 @@ for (i in 1:(length(parsedList4)+1))
   
 } 
 
+
 #print(past3)
 
 #y=SPCS20RSA
@@ -595,90 +600,19 @@ new3=cbind(new,future2)
 
 new4=new3
 
-#remove first three lines (1st 2 are na's, 3rd is removed due to bad future value extended)
+#https://stackoverflow.com/questions/36519086/pandas-how-to-get-rid-of-unnamed-column-in-a-dataframe/36519122
 
-x <- new3[!colnames(new3) %in% c('future')]
-y <- new3[colnames(new3) %in% c('CSUSHPINSA')]
+source_python("yields.py")
 
-xLagged = shift(x, n=1L, fill=NA, type=c("lead"), give.names=TRUE)
+write.csv(new4, file = "output.csv")
 
-#nrow(x)
-#nrow(y)
-#x.shift(+1)
+read_yields()
 
-yLagged = shift(y, n=1L, fill=NA, type=c("lead"), give.names=TRUE)
+#data saved as prepped.csv
 
-#y.shift(-1)
-yFuture = shift(y, n=1L, fill=NA, type=c("lag"), give.names=TRUE)
 
-#can't filter this out
 
-#https://www.rdocumentation.org/packages/base/versions/3.5.1/topics/interaction
 
-#x <- as.matrix(y)
-#y <- as.matrix(df2)
-
-#xInteraction <- as.data.frame(as.matrix(x) %*% as.matrix(xLagged))
-
-#yInteraction = interaction(data.frame(y),data.frame(yLagged))
-
-#nrow(data.frame(xInteraction))
-
-View(new4)
-ncol(new4)
-#View(new4)
-new4$CSUSHPINSA
-
-# # of na's in future
-naFuture = sum(is.na(new4$future))
-
-new5=head(new4,-naFuture)
-
-#fixed
-#new3=cbind(new2,future)
-
-#https://stackoverflow.com/questions/28523404/r-multiple-linear-regression-with-a-specific-range-of-variables
-#https://stats.stackexchange.com/questions/29477/how-to-write-a-linear-model-formula-with-100-variables-in-r
-#https://stackoverflow.com/questions/21148498/remove-last-n-rows-in-data-frame-with-the-arbitrary-number-of-rows
-
-#linear model
-#remove last future value
-
-#example code
-# # of elements
-n<-dim(df)[1]
-
-#example code
-#nrow(df), all but last row (this is offsetting)
-df<-df[1:(n-1),]
-#not used
-future3<-df$future
-
-#not used
-#remove future (all but last row)
-#https://stackoverflow.com/questions/10162480/copy-many-columns-from-one-data-frame-to-another
-data2<-df[,c(1:ncol(df)-1)]
-
-#acquire # of rows
-#n<-dim(df2)[1]
-
-#nrow(df)
-
-#not exactly what I want, but I see how multiple regression is implemented now.
-#rollapply()
-
-#remove the 1st few lines due to minlag (n/a's)
-temp1Data<-head(tail(new5[1:ncol(new5)-1],-5),6)
-
-#temp1Dates<-tail(new3[1:1],-5)
-temp1Future<-head(tail(new5[ncol(new5):ncol(new5)],-5),6)
-
-nrow(temp1Data)
-nrow(temp1Future)
-
-write.csv(new4, file = "output_test.csv")
-#write.csv(MRpredict, file ="predictions.csv")
-write(new4)
 
 
 

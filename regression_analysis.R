@@ -76,6 +76,10 @@ set.seed(123)
 for (i in 1:5)
 {
   training <- sample(nrow(MyData), replace=F)
+  
+  #goal is to find combinations of 6-7 that work
+  #rule of thumb is n for factor analysis should be 5(k*2)
+  #with /2 mine is 59, which is good for up to 11 factors (12 is 60), it would be ideal to have 80 since I'm starting with 14 factors, but oh well, since I'm aggregating the lists, I'm assuraedly going to lose thosee upper combitorial lists since those upper lists will be overfitted to the small sample sizes, which means wasted processing [that will be trimmed] (vs actually saving higher level models) and smaller pruned lists will only be stored and when the filter goes into affect, the affect will be much harsher.
   training1 <- training[1:smp_size]
   training2 <- training[(smp_size+1):nrow(MyData)]
   
@@ -209,9 +213,6 @@ for (i in 1:5)
   View(factor_test_list)
 }
 
-
-
-
 #https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
 #cross validation
 #rf = random forest
@@ -233,7 +234,7 @@ cv_model <- c()
 
 #due to the nature of ad-hoc runs, the seed could be in any state unless known to have run the code from start to finish
 #having the seed here ensures static results each run [even if ad hoc]
-set.seed(123)
+set.seed(124)
 cv_model <- data.frame(matrix(ncol=9,nrow=0))
 cv_model10 <- data.frame(matrix(ncol=9,nrow=0))
 cv_model10_log <- cv_model10 <- data.frame(matrix(ncol=9,nrow=0))
@@ -402,12 +403,14 @@ RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.num
 
 topPicks <- filter(cv_model10_log,  (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
 
+colnames(cv_model10_log) <- cnames
+colnames(topPicks) <- cnames
 par(mfrow=2:1)
 {
-
   hist((as.numeric(as.character(cv_model10_log$RMSE))))
   hist((as.numeric(as.character(topPicks$RMSE))))
 }
+View(topPicks)
 
 colnames(topPicks) <- cnames
 #trying to order by RMSE
@@ -430,7 +433,6 @@ for (i in 1:nrow(topPicks))
 
 
 #View()
-
 
 #wish to tabulate picked factor names
 #as.table(topPicks)
