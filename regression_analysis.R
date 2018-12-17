@@ -73,8 +73,10 @@ smp_size <- floor(1/2 * nrow(MyData))
 vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
-View(colnames(MyData))
+#View(colnames(MyData))
 
+#data is too big for exhaustive search
+factor_test_list<-c()
 set.seed(123)
 for (i in 1:5)
 {
@@ -110,23 +112,23 @@ for (i in 1:5)
   #SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
   #removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
   #trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
-  vars <- c('Q1','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POPTHM','xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
+  vars <- xList
   names <- c(names, vars)
   
   #doesn't throw an error here, but when I try to pass this model into ols_step_all_possible, it throws an error
   #.null used with stepwise
   #training1Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train1_xy_set)
-  training1Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train1_xy_set)
+  training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set)
   #training2Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train2_xy_set)
-  training2Model <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train2_xy_set)
+  training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set)
   
   #obj1 = step(training1Model.null, scope=list(lower=training1Model.null, upper=training1Model), direction='forward')
   #obj2 = step(training2Model.null, scope=list(lower=training1Model.null, upper=training2Model), direction='forward')
   
-  olsrr::ols_plot_resid_stud_fit(training1Model)
-  layout(matrix(c(1,2,3,4),2,2))
-  olsrr::ols_plot_resid_stud_fit(training2Model)
-  layout(matrix(c(1,2,3,4),2,2))
+  #olsrr::ols_plot_resid_stud_fit(training1Model)
+  #layout(matrix(c(1,2,3,4),2,2))
+  #olsrr::ols_plot_resid_stud_fit(training2Model)
+  #layout(matrix(c(1,2,3,4),2,2))
   
   anova(training1Model,training2Model)
   
@@ -135,8 +137,17 @@ for (i in 1:5)
   
   #****
   #careful, takes a long time
-  resultsAAll <- ols_step_all_possible(training1Model, p=.05)
-  resultsBAll <- ols_step_all_possible(training2Model, p=.05)
+  #resultsAAll <- ols_step_backward_p(training1Model, p=.05)
+  #resultsBAll <- ols_step_backward_p(training2Model, p=.05)
+  
+  #ols_step_forward_p()
+  
+  #ols_step_both_()
+  
+  #resultsAAll <- ols_step_all_possible(training1Model, p=.05)
+  resultsAAll <- ols_step_backward_p(training1Model, p=.05)
+  resultsBAll <- ols_step_backward_p(training2Model, p=.05)
+  #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
   #careful, takes a long time
   #****
   
@@ -156,8 +167,8 @@ for (i in 1:5)
   size_B_floor <- min(mean(resultsBAll$n),median(resultsBAll$n))
   
   #Error Filter
-  error_AFilter <- min(mean(resultsAAll$msep),median(resultsAAll$msep))
-  error_BFilter <- min(mean(resultsBAll$msep),median(resultsBAll$msep))
+  error_AFilter <- min(mean(resultsAAll$rmse),median(resultsAAll$rmse))
+  error_BFilter <- min(mean(resultsBAll$rmse),median(resultsBAll$rmse))
   
   #AIC Filter
   AIC_AFilter <- min(mean(resultsAAll$aic),median(resultsAAll$aic))
@@ -194,27 +205,55 @@ for (i in 1:5)
   
   #results in none... but does not change final outcome when inverted, so removed
   #(resultsAAll$apc > APC_AFilter) &
-  subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
-  subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
+  #subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
+  #subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
+
+  #resultsAAll$
+  #subsetA <- filter(resultsAAll,  (resultsAAll$rmse < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
+  #subsetB <- filter(resultsBAll,  rmse < error_BFilter )
+  tail(row.names(data.frame(resultsBAll$model$coefficients)),-1)
   
-  max(subsetA$n,subsetB$n)
+  #grab names of vars
+  splitA.var <- strsplit(tail(row.names(data.frame(resultsAAll$model$coefficients)),-1), " ")
+  splitB.var <- strsplit(tail(row.names(data.frame(resultsBAll$model$coefficients)),-1), " ")
+
+  #max(subsetA$n,subsetB$n)
   
   #merge quickly (not merge function)  
   
   #1st pass merge a and b
-  if(i==1)
-  {
-    factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
+  #if(i==1)
+  #{
+    #factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
+    factor_test_list <- splitA.var
+    factor_test_list <- c(factor_test_list,splitB.var)
     
-  }
+    
+  #}
   #subsequent passes, merge with each list separately
-  else
-  {
-    factor_test_list <- intersect(subsetA$predictors,factor_test_list)
-    factor_test_list <- intersect(subsetB$predictors,factor_test_list)
-  }
-  View(factor_test_list)
+  #else
+  #{
+    #factor_test_list <- intersect(splitA.var,factor_test_list)
+    #factor_test_list <- intersect(splitB.var,factor_test_list)
+  #}
+  View(unique(factor_test_list))
 }
+
+xyList <- c()
+gnames <- c()
+gnames <- c(gnames, 'yFYield_CSUSHPINSA')
+
+gnames <- c(gnames, factor_test_list)
+
+xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
+
+training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set[xyList])
+training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
+
+resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
+resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
+
+f_list <- intercept(resultsAll1, resultsAll2)
 
 #https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
 #cross validation
@@ -261,7 +300,7 @@ colnames(sub_average_object) <- cv_colnames
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
 #a=0
 #i=3
-for (i in seq(factor_test_list)) 
+for (i in seq(f_list)) 
 {
   #higher level index
   sub_cv_model <- c()
@@ -271,7 +310,7 @@ for (i in seq(factor_test_list))
   factor_list <- c()
   var <- c()
   #a=a+1
-  factor_list <- factor_test_list[i]
+  factor_list <- f_list[i]
   
   #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
   vars <- scan(text = factor_list, what = "")
