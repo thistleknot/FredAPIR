@@ -374,7 +374,7 @@ for (i in seq(f_list))
     print(trainingValidModel)
     trainingValidModel$coefficients
     
-    olsrr::ols_plot_resid_stud_fit(trainingValidModel)
+    #olsrr::ols_plot_resid_stud_fit(trainingValidModel)
     
     #cross validation
     #https://www.statmethods.net/stats/regression.html
@@ -395,7 +395,7 @@ for (i in seq(f_list))
     plot(fit)
     
     layout(matrix(c(1),1))
-    olsrr::ols_plot_resid_stud_fit(fit)
+    #olsrr::ols_plot_resid_stud_fit(fit)
     
     plot(testdistPred,fit$residuals)
     
@@ -438,11 +438,12 @@ for (i in seq(f_list))
 }
 
 #within 1 standard deviation from the minimum, but also at least 1 standard deviation away from the mean
+colnames(cv_model10_log) <- cnames
 RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.numeric(as.character(cv_model10_log$RMSE)))
 
 topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
 
-colnames(cv_model10_log) <- cnames
+
 colnames(topPicks) <- cnames
 par(mfrow=2:1)
 {
