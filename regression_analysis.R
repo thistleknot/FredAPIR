@@ -74,7 +74,7 @@ vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
 #View(colnames(MyData))
-
+vars <- c()
 #data is too big for exhaustive search
 factor_test_list<-c()
 set.seed(123)
@@ -108,7 +108,7 @@ for (i in 1:5)
   train2_xy_set <- training2Data[c(yField,xList)]
   
   names <- c()
-  vars <- c()
+  
   names <- c(names, 'yFYield_CSUSHPINSA')
   #SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
   #removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
@@ -353,7 +353,7 @@ for (i in seq(f_list))
     names2 <- names
     #using valid1 data
     colnames(valid1_xy_set)
-    trainingValidModel <- lm(fieldOfInterest~., valid1_xy_set[names2])
+    trainingValidModel <- lm(valid1_xy_set[names2])
     
     fit <- lm(trainingValidModel, data=test1_xy_set[names2])
     testdistPred <- predict(fit)
