@@ -81,6 +81,7 @@ set.seed(123)
 for (i in 1:5)
 {
   training <- sample(nrow(MyData), replace=F)
+  print(training)
   
   #goal is to find combinations of 6-7 that work
   #rule of thumb is n for factor analysis should be 5(k*2)
@@ -151,66 +152,6 @@ for (i in 1:5)
   #careful, takes a long time
   #****
   
-  #Adj R^2 Filter
-  adjR_Afilter <-  max(mean(resultsAAll$adjr),median(resultsAAll$adjr))
-  adjR_Bfilter <-  max(mean(resultsBAll$adjr),median(resultsBAll$adjr))
-  
-  #Mallows' Cp-statistic estimates the size of the bias that is introduced into the predicted responses by having an underspecified model.
-  # Mallows Distance from n Filter, lower absolute distance from n is better
-  #better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
-  #book says close to p+1
-  mcp_A_floor <- min(mean(resultsAAll$cp-resultsAAll$n+1),median(resultsAAll$cp-resultsAAll$n+1))
-  mcp_B_floor <- min(mean(resultsBAll$cp-resultsBAll$n+1),median(resultsBAll$cp-resultsBAll$n+1))
-  
-  #size filter
-  size_A_floor <- min(mean(resultsAAll$n),median(resultsAAll$n))
-  size_B_floor <- min(mean(resultsBAll$n),median(resultsBAll$n))
-  
-  #Error Filter
-  error_AFilter <- min(mean(resultsAAll$rmse),median(resultsAAll$rmse))
-  error_BFilter <- min(mean(resultsBAll$rmse),median(resultsBAll$rmse))
-  
-  #AIC Filter
-  AIC_AFilter <- min(mean(resultsAAll$aic),median(resultsAAll$aic))
-  AIC_BFilter <- min(mean(resultsBAll$aic),median(resultsBAll$aic))
-  
-  #SBC and SBIC 
-  SBIC_AFilter <- min(mean(resultsAAll$sbic),median(resultsAAll$sbic))
-  SBC_AFilter <- min(mean(resultsAAll$sbc),median(resultsAAll$sbc))
-  SBIC_BFilter <- min(mean(resultsBAll$sbic),median(resultsBAll$sbic))
-  SBC_BFilter <- min(mean(resultsBAll$sbc),median(resultsBAll$sbc))
-  
-  #APC Filter Higher is better
-  #https://olsrr.rsquaredacademy.com/reference/ols_apc.html
-  #Amemiya's Prediction Criterion penalizes R-squared more heavily than does adjusted R-squared for each addition degree of freedom used on the right-hand-side of the equation. 
-  #The higher the better for this criterion.
-  APC_AFilter <- max(mean(resultsAAll$apc),median(resultsAAll$apc))
-  APC_BFilter <- max(mean(resultsBAll$apc),median(resultsBAll$apc))
-  #& (resultsAAll$apc > APC_AFilter)
-  #decisive, heavily penalizes per factor
-  
-  #Hocking's SP, lower is better
-  #https://rdrr.io/cran/olsrr/man/ols_hsp.html
-  HSP_AFilter <- min(mean(resultsAAll$hsp),median(resultsAAll$hsp))
-  HSP_BFilter <- min(mean(resultsBAll$hsp),median(resultsBAll$hsp))
-  
-  #Average prediction mean squared error
-  #Final Prediction Error
-  FPE_AFilter <- min(mean(resultsAAll$fpe),median(resultsAAll$fpe))
-  FPE_BFilter <- min(mean(resultsBAll$fpe),median(resultsBAll$fpe))
-  
-  #filtered
-  #AIC and BIC hold the same interpretation in terms of model comparison. That is, the larger difference in either AIC or BIC indicates stronger evidence for one model over the other 
-  #(the lower the better). It's just the the AIC doesn't penalize the number of parameters as strongly as BIC.Jan 7, 2014
-  
-  #results in none... but does not change final outcome when inverted, so removed
-  #(resultsAAll$apc > APC_AFilter) &
-  #subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
-  #subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
-
-  #resultsAAll$
-  #subsetA <- filter(resultsAAll,  (resultsAAll$rmse < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
-  #subsetB <- filter(resultsBAll,  rmse < error_BFilter )
   tail(row.names(data.frame(resultsBAll$model$coefficients)),-1)
   
   #grab names of vars
@@ -220,23 +161,10 @@ for (i in 1:5)
   #max(subsetA$n,subsetB$n)
   
   #merge quickly (not merge function)  
-  
-  #1st pass merge a and b
-  #if(i==1)
-  #{
-    #factor_test_list <- intersect(subsetA$predictors,subsetB$predictors)
-    factor_test_list <- splitA.var
-    factor_test_list <- c(factor_test_list,splitB.var)
-    
-    
-  #}
-  #subsequent passes, merge with each list separately
-  #else
-  #{
-    #factor_test_list <- intersect(splitA.var,factor_test_list)
-    #factor_test_list <- intersect(splitB.var,factor_test_list)
-  #}
-  View(unique(factor_test_list))
+    factor_test_list <- 
+    factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
+    #View(unique(factor_test_list))
+    View(intersect(splitA.var,splitB.var))
 }
 
 xyList <- c()
@@ -253,7 +181,73 @@ training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
 resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
 resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
 
-f_list <- intercept(resultsAll1, resultsAll2)
+{
+  
+  #Adj R^2 Filter
+  adjR_Afilter <-  max(mean(resultsAll1$adjr),median(resultsAll1$adjr))
+  adjR_Bfilter <-  max(mean(resultsAll2$adjr),median(resultsAll2$adjr))
+  
+  #Mallows' Cp-statistic estimates the size of the bias that is introduced into the predicted responses by having an underspecified model.
+  # Mallows Distance from n Filter, lower absolute distance from n is better
+  #better to allow for more higher mallow's CP values since they are so disparate and no need to punish so heavily early on
+  #book says close to p+1
+  mcp_A_floor <- min(mean(resultsAll1$cp-resultsAll1$n+1),median(resultsAll1$cp-resultsAll1$n+1))
+  mcp_B_floor <- min(mean(resultsAll2$cp-resultsAll2$n+1),median(resultsAll2$cp-resultsAll2$n+1))
+  
+  #size filter
+  size_A_floor <- min(mean(resultsAll1$n),median(resultsAll1$n))
+  size_B_floor <- min(mean(resultsAll2$n),median(resultsAll2$n))
+  
+  #Error Filter
+  error_AFilter <- min(mean(resultsAll1$msep),median(resultsAll1$msep))
+  error_BFilter <- min(mean(resultsAll2$msep),median(resultsAll2$msep))
+  
+  #AIC Filter
+  AIC_AFilter <- min(mean(resultsAll1$aic),median(resultsAll1$aic))
+  AIC_BFilter <- min(mean(resultsAll2$aic),median(resultsAll2$aic))
+  
+  #SBC and SBIC 
+  #SBIC_AFilter <- min(mean(resultsAll1$sbic),median(resultsAll1$sbic))
+  SBC_AFilter <- min(mean(resultsAll1$sbc),median(resultsAll1$sbc))
+  #SBIC_BFilter <- min(mean(resultsAll2$sbic),median(resultsAll2$sbic))
+  SBC_BFilter <- min(mean(resultsAll2$sbc),median(resultsAll2$sbc))
+  
+  #APC Filter Higher is better
+  #https://olsrr.rsquaredacademy.com/reference/ols_apc.html
+  #Amemiya's Prediction Criterion penalizes R-squared more heavily than does adjusted R-squared for each addition degree of freedom used on the right-hand-side of the equation. 
+  #The higher the better for this criterion.
+  APC_AFilter <- max(mean(resultsAll1$apc),median(resultsAll1$apc))
+  APC_BFilter <- max(mean(resultsAll2$apc),median(resultsAll2$apc))
+  #& (resultsAAll$apc > APC_AFilter)
+  #decisive, heavily penalizes per factor
+  
+  #Hocking's SP, lower is better
+  #https://rdrr.io/cran/olsrr/man/ols_hsp.html
+  HSP_AFilter <- min(mean(resultsAll1$hsp),median(resultsAll1$hsp))
+  HSP_BFilter <- min(mean(resultsAll2$hsp),median(resultsAll2$hsp))
+  
+  #Average prediction mean squared error
+  #Final Prediction Error
+  FPE_AFilter <- min(mean(resultsAll1$fpe),median(resultsAll1$fpe))
+  FPE_BFilter <- min(mean(resultsAll2$fpe),median(resultsAll2$fpe))
+  
+  #filtered
+  #AIC and BIC hold the same interpretation in terms of model comparison. That is, the larger difference in either AIC or BIC indicates stronger evidence for one model over the other 
+  #(the lower the better). It's just the the AIC doesn't penalize the number of parameters as strongly as BIC.Jan 7, 2014
+  
+  #results in none... but does not change final outcome when inverted, so removed
+  #(resultsAAll$apc > APC_AFilter) &
+  #subsetA <- filter(resultsAAll,  (resultsAAll$msep < error_AFilter) & (resultsAAll$adjr > adjR_Afilter)  & ((resultsAAll$cp-resultsAAll$n) <= mcp_A_floor) & (resultsAAll$n < size_A_floor)& (resultsAAll$aic < AIC_AFilter) & (resultsAAll$sbc < SBC_AFilter) & (resultsAAll$sbic < SBIC_AFilter)  & (resultsAAll$hsp < HSP_AFilter) & (resultsAAll$fpe < FPE_AFilter)) 
+  #subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
+  
+  #resultsAAll$
+  subsetA <- filter(resultsAll1,  (resultsAll1$msep < error_AFilter) & (resultsAll1$adjr > adjR_Afilter)  & ((resultsAll1$cp-resultsAll1$n) <= mcp_A_floor) & (resultsAll1$n < size_A_floor)& (resultsAll1$aic < AIC_AFilter) &(resultsAll1$sbc < SBC_AFilter)  & (resultsAll1$hsp < HSP_AFilter) & (resultsAll1$fpe < FPE_AFilter)) 
+  subsetB <- filter(resultsAll2,  (resultsAll2$msep < error_BFilter) & (resultsAll2$adjr > adjR_Bfilter)  & ((resultsAll2$cp-resultsAll2$n) <= mcp_B_floor) & (resultsAll2$n < size_B_floor)& (resultsAll2$aic < AIC_BFilter) & (resultsAll2$sbc < SBC_BFilter)  & (resultsAll2$hsp < HSP_BFilter) & (resultsAll2$fpe < FPE_BFilter)) 
+  
+}
+
+f_list <- intersect(subsetA$predictors,subsetB$predictors)
+View(f_list)
 
 #https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
 #cross validation
@@ -327,7 +321,7 @@ for (i in seq(f_list))
   # used for averages
   
   #i=3
-  for (i in 1:2)
+  for (i in 1:3)
   {
     s_true=0
 
