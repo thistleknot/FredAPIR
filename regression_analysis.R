@@ -17,6 +17,7 @@ library(ggplot2)
 #mallows
 library(locfit)
 
+
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
 PRESS <- function(linear.model) {
@@ -29,8 +30,39 @@ ascending=function(var){
   return(products_ascending)
 }
 
-MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
-View(MyData)
+pre_MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
+
+#fedvar was causing too much chaos with trainingDatasets having all 0's
+dropColumns = colSums(pre_MyData == 0, na.rm = TRUE)
+
+filtered <- c()
+for (i in 1:nrow(data.frame(dropColumns)))
+{
+  #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
+  
+  #if(i>(floor*nrow(test1_z)))
+  print(data.frame(dropColumns[i])[,1])
+  #not really a percentage, more so a minimal acceptable loss
+  #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant+2))
+  if((data.frame(dropColumns[i])[,1])>=.80*nrow(pre_MyData))
+  {
+    print("yes")
+    
+    #works
+    filtered <- rbind (filtered,i)
+    #works
+    print(colnames(pre_MyData)[i])
+    #does not work
+    #filtered <- rbind(filtered,colnames(test2_z)[i-1])
+  }
+  else
+  {
+    print("no")
+  }
+  
+}
+
+NonRngMyData <- (pre_MyData[,-c(filtered)])
 
 fieldOfInterest='yFYield_CSUSHPINSA'
 
@@ -69,25 +101,43 @@ nrow(y)
 #alternative is 75% bootstraps of resampled data, having it split into 1/3's makes the data diverse for 6 years
 #limit training size to 1/3? (6 years)
 
-smp_size <- floor(1/2 * nrow(MyData))
-vld_size <- floor(1.0 * nrow(MyData))
+#ideal would be to shift start position
+
+#smp_size <-  floor(train_size * nrow(MyData))
+#test_size <- nrow(MyData)-smp_size
+#vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
+
+train_size = .5
+#test_size = 1- train_size
+
+preset_rng <- sample(nrow(NonRngMyData), replace=F)
+#static training set
+preset1 <- preset_rng[1:floor(nrow(NonRngMyData)*train_size)]
+#static testing set
+preset2 <- preset_rng[ceiling(nrow(NonRngMyData)*train_size):nrow(NonRngMyData)]
 
 #View(colnames(MyData))
 vars <- c()
 #data is too big for exhaustive search
 factor_test_list<-c()
-set.seed(123)
+set.seed(256)
 for (i in 1:5)
 {
-  training <- sample(nrow(MyData), replace=F)
-  print(training)
+  print(i)
+  #lower
+  
+  #rescramble set1
+  set1 <- preset1[sample(length(preset1), replace=F)]
+  
+  #training <- sample(smp_size, replace=F)
+  #print(training)
   
   #goal is to find combinations of 6-7 that work
   #rule of thumb is n for factor analysis should be 5(k*2)
   #with /2 mine is 59, which is good for up to 11 factors (12 is 60), it would be ideal to have 80 since I'm starting with 14 factors, but oh well, since I'm aggregating the lists, I'm assuraedly going to lose thosee upper combitorial lists since those upper lists will be overfitted to the small sample sizes, which means wasted processing [that will be trimmed] (vs actually saving higher level models) and smaller pruned lists will only be stored and when the filter goes into affect, the affect will be much harsher.
-  training1 <- training[1:smp_size]
-  training2 <- training[(smp_size+1):nrow(MyData)]
+  training1 <- set1[1:floor(length(set1)/2)]
+  training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
   
   #http://r-statistics.co/Linear-Regression.html
   #used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
@@ -96,7 +146,7 @@ for (i in 1:5)
   
   training1Data <- c()
   training2Data <- c()
-  
+
   #new plan is to create two randomized partitions that will have complete dataset algo's done on them.
   training1Data <- MyData[training1, ]  # model training data
   training2Data <- MyData[training2, ]  # model training data
@@ -109,7 +159,7 @@ for (i in 1:5)
   
   names <- c()
   
-  names <- c(names, 'yFYield_CSUSHPINSA')
+  names <- c(names, fieldOfInterest)
   #SPSSReducedModel <- c('yFYield_CSUSHPINSA','Q1','Q2','Q3','Q4','xYield_CASTHPI','xYield_CPALTT01USQ657N','xYield_GS10','xYield_MSPNHSUS','xYield_MVLOAS','xYield_NYXRSA','xYield_POP','xYield_POPTHM',xYield_SDXRSA','xYield_TB3MS','xYield_UMCSENT','xYield_USSLIND')
   #removed xYield_POP due to high correlation with xYield_POPTHM as well as Q2 for collinearity reasons
   #trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
@@ -131,7 +181,7 @@ for (i in 1:5)
   #olsrr::ols_plot_resid_stud_fit(training2Model)
   #layout(matrix(c(1,2,3,4),2,2))
   
-  anova(training1Model,training2Model)
+  #anova(training1Model,training2Model)
   
   summary(training1Model)
   summary(training2Model)
@@ -146,8 +196,62 @@ for (i in 1:5)
   #ols_step_both_()
   
   #resultsAAll <- ols_step_all_possible(training1Model, p=.05)
-  resultsAAll <- ols_step_backward_p(training1Model, p=.05)
-  resultsBAll <- ols_step_backward_p(training2Model, p=.05)
+  alias(training1Model)
+  
+  #deal with "there are aliased coefficients in the model" from ols_step funtion
+  #https://stats.stackexchange.com/questions/112442/what-are-aliased-coefficients
+  #linearHypothesis
+  #library(car)
+  #linearHypothesis(training1Model)
+  #linearHypothesis(training2Model)
+  resultsAAll <- c()
+  aflag = 0
+  result = tryCatch({
+    resultsAAll <- ols_step_both_p(training1Model, pent=.05)
+  }, warning = function(w) {
+    #warning-handler-code
+    print("warning")
+    aflag = 0
+    #resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+  }, error = function(e) {
+    break
+    print("error")
+    aflag = 1
+  }, finally = {
+    
+  })
+  print(aflag)
+  if(aflag==0)
+  {
+    resultsAAll <- ols_step_both_p(training1Model, pent=.05)
+  }
+  
+  
+  resultsBAll <- c()
+  bflag = 0
+  result = tryCatch({
+    resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+  }, warning = function(w) {
+    #warning-handler-code
+    print("warning")
+    bflag = 0
+    #resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+  }, error = function(e) {
+    break
+    print("error")
+    bflag = 1
+  }, finally = {
+    
+  })
+  print(bflag)
+  if(bflag==0)
+  {
+    resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+  }
+  
+  
+  
+  
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
   #careful, takes a long time
   #****
@@ -161,10 +265,17 @@ for (i in 1:5)
   #max(subsetA$n,subsetB$n)
   
   #merge quickly (not merge function)  
-    factor_test_list <- 
-    factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
-    #View(unique(factor_test_list))
-    View(intersect(splitA.var,splitB.var))
+  factor_test_list <- c()
+  factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
+  
+  print(intersect(splitA.var,splitB.var))
+  
+  #names.reads <- c("
+  
+  #splitA.var
+  #splitB.var
+  
+  #print(intersect(splitA.var,splitB.var))
 }
 
 xyList <- c()
@@ -173,7 +284,7 @@ gnames <- c(gnames, 'yFYield_CSUSHPINSA')
 
 gnames <- c(gnames, factor_test_list)
 
-xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
+xyList = colnames(MyData[ ,which((names(pre_MyData) %in% gnames)==TRUE)])
 
 training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set[xyList])
 training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
@@ -181,6 +292,7 @@ training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
 resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
 resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
 
+#used for comprehensive lists
 {
   
   #Adj R^2 Filter
@@ -247,6 +359,11 @@ resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
 }
 
 f_list <- intersect(subsetA$predictors,subsetB$predictors)
+
+if (length(f_list)==0)
+{
+  f_list <- intersect(resultsAll1$predictors,resultsAll2$predictors)
+}
 View(f_list)
 
 #https://www.analyticsvidhya.com/blog/2018/05/improve-model-performance-cross-validation-in-python-r/
@@ -280,15 +397,12 @@ colnames(cv_model10) <- cnames
 colnames(cv_model10_log) <- cnames
 
 sub_average_object <- c()
-sub_holding <- c()
 
 cv_colnames <- c('factor_list','n','RMSE', 'RSS', 'adjR', 'model_p_sign')
 
 sub_average_object <- data.frame(matrix(ncol=9,nrow=0))
 sub_average_object<- data.frame(matrix(ncol=6,nrow=0))
-sub_holding <- data.frame(matrix(ncol=6,nrow=divisions))
 
-colnames(sub_holding) <- cv_colnames
 colnames(sub_average_object) <- cv_colnames
 
 #10% was too low (leverage of 1 threw an error, can only assume 10% CV window too small, I'd almost prefer to do 33%), doing 25% CV
@@ -296,6 +410,9 @@ colnames(sub_average_object) <- cv_colnames
 #i=3
 for (i in seq(f_list)) 
 {
+  #rescramble set1
+  set1 <- preset1[sample(length(preset1), replace=F)]
+ 
   #higher level index
   sub_cv_model <- c()
   sub_cv_model <- data.frame(matrix(ncol=6,nrow=0))
@@ -321,15 +438,15 @@ for (i in seq(f_list))
   # used for averages
   
   #i=3
-  for (i in 1:3)
+  for (i in 1:10)
   {
     s_true=0
 
-    validation1 <- sample(vld_size, replace=F)
+    validation1 <- sample(length(set1), replace=F)
 
     #unique non repeat sampled data, bootstrapped in terms that a new sample is generated each iteration    
-    training = validation1[1:(nrow(x)/2)]
-    validation = validation1[((nrow(x)/2)+1):(nrow(x))]
+    training = validation1[1:floor(length(set1)/2)]
+    validation = validation1[ceiling(length(set1)/2+1):length(set1)]
     
     trainingValidModel <-c()
     fit<- c()
@@ -380,7 +497,7 @@ for (i in seq(f_list))
     #https://www.statmethods.net/stats/regression.html
     layout(matrix(c(1),1))
 
-        #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
+    #https://www.rdocumentation.org/packages/DescTools/versions/0.99.19/topics/Measures%20of%20Accuracy
     MAE(fit)
     MAPE(fit)
     MSE(fit)
@@ -410,7 +527,7 @@ for (i in seq(f_list))
     
     #final RMSE should be evaluated against model that performs best against actual data.
     cv_model <- rbind(cv_model,holding)
-    #sub_holding <- rbind(c(factor_list, resultsAll$n, RMSE(fit), PRESS(fit), resultsAll$adjr, resultsAll$p))
+    
     cv_model10 <- rbind(cv_model10,holding)
   }
 
@@ -443,7 +560,6 @@ RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.num
 
 topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
 
-
 colnames(topPicks) <- cnames
 par(mfrow=2:1)
 {
@@ -466,11 +582,55 @@ colnames(topPicks) <- cnames
 #order(as.numeric(as.character(topPicks$'RMSE')))
 
 #manual sort.... but order is not confirmed as correct
-for (i in 1:nrow(topPicks))
+for (i in topPicks$factor_list)
 {
+  #rescramble set2
+  set2 <- preset2[sample(length(preset2), replace=F)]
+  #upper (test)
   
-}
+  
+  names <- c()
+  
+  sub_cv_model <- c()
+  sub_cv_model <- data.frame(matrix(ncol=6,nrow=0))
+  colnames(sub_cv_model) <- cv_colnames
+  
+  factor_list <- c()
+  var <- c()
+  #a=a+1
+  factor_list <- i
+  
+  #https://stackoverflow.com/questions/24741541/split-a-string-by-any-number-of-spaces
 
+  names <- c(names, 'yFYield_CSUSHPINSA')
+  
+  vars <- scan(text = factor_list, what = "")
+  
+  names <- c(names, vars)
+
+  post_training <- set2[1:floor(length(set2)/2)]
+  post_testing <- set2[ceiling(length(set2)/2):length(set2)]
+  
+  post_training_data <- c()
+  post_testing_data <- c()
+
+  post_training_data <- MyData[post_training, ][c(names)]  # model training data
+  post_testing_data <- MyData[post_testing, ][c(names)]  # model training data
+
+  post_testing_xy_set <- c()
+  post_testing_xy_set <- post_testing_data
+  
+  post_training_xy_set <- c()
+  post_training_xy_set <- post_training_data
+  
+  post_trainingModel <- lm(post_training_data)
+  #post_testing_Model <- lm(post_testing_data)
+ 
+  post_fit <- lm(post_trainingModel, data=post_testing_xy_set)
+  post_testdistPred <- predict(post_fit)
+  #post_trainValidPred <- predict(trainingValidModel)
+  print(summary(post_fit))
+}
 
 #View()
 
