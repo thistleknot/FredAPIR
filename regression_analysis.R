@@ -108,11 +108,13 @@ nrow(y)
 #vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
-train_size = .5
+train_size = .8
 #test_size = 1- train_size
 
 preset_rng <- sample(nrow(NonRngMyData), replace=F)
 #static training set
+
+#training/validation sets (split into rebootstrapped 1:1 distinct partitions)
 preset1 <- preset_rng[1:floor(nrow(NonRngMyData)*train_size)]
 #static testing set
 preset2 <- preset_rng[ceiling(nrow(NonRngMyData)*train_size):nrow(NonRngMyData)]
@@ -196,6 +198,7 @@ for (i in 1:5)
   #ols_step_both_()
   
   #resultsAAll <- ols_step_all_possible(training1Model, p=.05)
+  #https://stackoverflow.com/questions/27128455/r-try-catch-block
   alias(training1Model)
   
   #deal with "there are aliased coefficients in the model" from ols_step funtion
@@ -249,9 +252,6 @@ for (i in 1:5)
     resultsBAll <- ols_step_both_p(training2Model, pent=.05)
   }
   
-  
-  
-  
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
   #careful, takes a long time
   #****
@@ -284,7 +284,7 @@ gnames <- c(gnames, 'yFYield_CSUSHPINSA')
 
 gnames <- c(gnames, factor_test_list)
 
-xyList = colnames(MyData[ ,which((names(pre_MyData) %in% gnames)==TRUE)])
+xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
 training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set[xyList])
 training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
