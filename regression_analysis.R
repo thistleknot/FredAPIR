@@ -109,7 +109,10 @@ nrow(y)
 #vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
-train_size = .7
+
+#important that # of rows exceeds # of columns fed in
+#else doing expensive error try blocks due to aliased coefficients
+train_size = .925
 #test_size = 1- train_size
 
 preset_rng <- sample(nrow(MyData), replace=F)
@@ -212,7 +215,7 @@ for (i in 1:10)
   aflag = 0
   result = tryCatch({
     #vs step all
-    resultsAAll <- ols_step_forward_p(training1Model, penter=.1)
+    #resultsAAll <- ols_step_forward_p(training1Model, penter=.1)
   }, warning = function(w) {
     #warning-handler-code
     print("warning")
@@ -229,14 +232,14 @@ for (i in 1:10)
   print(aflag)
   if(aflag==0)
   {
-    resultsAAll <- ols_step_forward_p(training1Model, penter=.1)
+    resultsAAll <- ols_step_backward_p(training1Model, penter=.1)
   }
   
   
   resultsBAll <- c()
   bflag = 0
   result = tryCatch({
-    resultsBAll <- ols_step_forward_p(training2Model, penter=.1)
+    #resultsBAll <- ols_step_forward_p(training2Model, penter=.1)
   }, warning = function(w) {
     #warning-handler-code
     print("warning")
@@ -254,7 +257,7 @@ for (i in 1:10)
   print(bflag)
   if(bflag==0)
   {
-    resultsBAll <- ols_step_forward_p(training2Model, penter=.1)
+    resultsBAll <- ols_step_backward_p(training2Model, penter=.1)
   }
   
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
@@ -283,13 +286,21 @@ for (i in 1:10)
   #print(intersect(splitA.var,splitB.var))
 }
 
+print(factor_test_list)
+
 xyList <- c()
 gnames <- c()
 gnames <- c('yFYield_CSUSHPINSA')
 
 gnames <- c(factor_test_list)
 
+#reshuffle sets
+set1 <- preset1[sample(length(preset1), replace=F)]
+set2 <- preset1[sample(length(preset1), replace=F)]
+training1 <- set1[1:floor(length(set1)/2)]
+training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
 
+#same xylist to two different training partitions
 xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
 #t1 and t2 needed foed ols_step_app_possible
