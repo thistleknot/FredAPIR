@@ -17,7 +17,6 @@ library(ggplot2)
 #mallows
 library(locfit)
 
-
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
 PRESS <- function(linear.model) {
@@ -42,7 +41,7 @@ for (i in 1:nrow(data.frame(dropColumns)))
   
   #if(i>(floor*nrow(test1_z)))
   print(data.frame(dropColumns[i])[,1])
-  #not really a percentage, more so a minimal acceptable loss
+  #not really a percentage, more so a minimal acceptable loss, quarters are 75%, fedmin was 92%
   #if(data.frame(dropColumns[i])[,1]>=(seasonalConstant+2))
   if((data.frame(dropColumns[i])[,1])>=.80*nrow(pre_MyData))
   {
@@ -62,9 +61,11 @@ for (i in 1:nrow(data.frame(dropColumns)))
   
 }
 
-NonRngMyData <- (pre_MyData[,-c(filtered)])
+MyData <- (pre_MyData[,-c(filtered)])
 
 fieldOfInterest='yFYield_CSUSHPINSA'
+
+#MyData <- pre_MyData
 
 colnames(MyData) 
 
@@ -108,23 +109,23 @@ nrow(y)
 #vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
-train_size = .8
+train_size = .7
 #test_size = 1- train_size
 
-preset_rng <- sample(nrow(NonRngMyData), replace=F)
+preset_rng <- sample(nrow(MyData), replace=F)
 #static training set
 
 #training/validation sets (split into rebootstrapped 1:1 distinct partitions)
-preset1 <- preset_rng[1:floor(nrow(NonRngMyData)*train_size)]
+preset1 <- preset_rng[1:floor(nrow(MyData)*train_size)]
 #static testing set
-preset2 <- preset_rng[ceiling(nrow(NonRngMyData)*train_size):nrow(NonRngMyData)]
+preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
 
 #View(colnames(MyData))
 vars <- c()
 #data is too big for exhaustive search
 factor_test_list<-c()
 set.seed(256)
-for (i in 1:5)
+for (i in 1:10)
 {
   print(i)
   #lower
@@ -210,14 +211,16 @@ for (i in 1:5)
   resultsAAll <- c()
   aflag = 0
   result = tryCatch({
-    resultsAAll <- ols_step_both_p(training1Model, pent=.05)
+    #vs step all
+    resultsAAll <- ols_step_forward_p(training1Model, penter=.1)
   }, warning = function(w) {
     #warning-handler-code
     print("warning")
     aflag = 0
-    #resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+    #resultsAAll <- ols_step_forward_p(training1Model, penter=.075)
   }, error = function(e) {
-    break
+    #break
+    resultsAAll <- c()
     print("error")
     aflag = 1
   }, finally = {
@@ -226,30 +229,32 @@ for (i in 1:5)
   print(aflag)
   if(aflag==0)
   {
-    resultsAAll <- ols_step_both_p(training1Model, pent=.05)
+    resultsAAll <- ols_step_forward_p(training1Model, penter=.1)
   }
   
   
   resultsBAll <- c()
   bflag = 0
   result = tryCatch({
-    resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+    resultsBAll <- ols_step_forward_p(training2Model, penter=.1)
   }, warning = function(w) {
     #warning-handler-code
     print("warning")
     bflag = 0
-    #resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+    #resultsBAll <- ols_step_forward_p(training2Model, penter=.075)
   }, error = function(e) {
-    break
+    resultsBAll <- c()
+    #break
     print("error")
     bflag = 1
+    #break
   }, finally = {
     
   })
   print(bflag)
   if(bflag==0)
   {
-    resultsBAll <- ols_step_both_p(training2Model, pent=.05)
+    resultsBAll <- ols_step_forward_p(training2Model, penter=.1)
   }
   
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
@@ -280,17 +285,23 @@ for (i in 1:5)
 
 xyList <- c()
 gnames <- c()
-gnames <- c(gnames, 'yFYield_CSUSHPINSA')
+gnames <- c('yFYield_CSUSHPINSA')
 
-gnames <- c(gnames, factor_test_list)
+gnames <- c(factor_test_list)
+
 
 xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
-training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set[xyList])
-training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set[xyList])
+#t1 and t2 needed foed ols_step_app_possible
+t1 <- train1_xy_set[c(yField,xyList)]
+t2 <- train2_xy_set[c(yField,xyList)]
+training1Model <- lm(yFYield_CSUSHPINSA~.,t1)
+training2Model <- lm(yFYield_CSUSHPINSA~.,t2)
 
-resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
-resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
+#resultsAll1 <- c()
+#resultsAll2 <- c()
+resultsAll1 <- ols_step_all_possible(training1Model, p=.075)
+resultsAll2 <- ols_step_all_possible(training1Model, p=.075)
 
 #used for comprehensive lists
 {
@@ -312,7 +323,9 @@ resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
   
   #Error Filter
   error_AFilter <- min(mean(resultsAll1$msep),median(resultsAll1$msep))
+  #error_AFilter <- min(mean(resultsAll1$rmse),median(resultsAll1$rmse))
   error_BFilter <- min(mean(resultsAll2$msep),median(resultsAll2$msep))
+  #error_BFilter <- min(mean(resultsAll2$rmse),median(resultsAll2$rmse))
   
   #AIC Filter
   AIC_AFilter <- min(mean(resultsAll1$aic),median(resultsAll1$aic))
@@ -340,8 +353,9 @@ resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
   
   #Average prediction mean squared error
   #Final Prediction Error
-  FPE_AFilter <- min(mean(resultsAll1$fpe),median(resultsAll1$fpe))
-  FPE_BFilter <- min(mean(resultsAll2$fpe),median(resultsAll2$fpe))
+  #doesnt work with backwards
+  #FPE_AFilter <- min(mean(resultsAll1$fpe),median(resultsAll1$fpe))
+  #FPE_BFilter <- min(mean(resultsAll2$fpe),median(resultsAll2$fpe))
   
   #filtered
   #AIC and BIC hold the same interpretation in terms of model comparison. That is, the larger difference in either AIC or BIC indicates stronger evidence for one model over the other 
@@ -353,8 +367,9 @@ resultsAll2 <- ols_step_all_possible(training2Model, p=.05)
   #subsetB <- filter(resultsBAll,  (resultsBAll$msep < error_BFilter) & (resultsBAll$adjr > adjR_Bfilter)  & ((resultsBAll$cp-resultsBAll$n) <= mcp_B_floor) & (resultsBAll$n < size_B_floor)& (resultsBAll$aic < AIC_BFilter) & (resultsBAll$sbc < SBC_BFilter) & (resultsBAll$sbic < SBIC_BFilter)  & (resultsBAll$hsp < HSP_BFilter) & (resultsBAll$fpe < FPE_BFilter))
   
   #resultsAAll$
-  subsetA <- filter(resultsAll1,  (resultsAll1$msep < error_AFilter) & (resultsAll1$adjr > adjR_Afilter)  & ((resultsAll1$cp-resultsAll1$n) <= mcp_A_floor) & (resultsAll1$n < size_A_floor)& (resultsAll1$aic < AIC_AFilter) &(resultsAll1$sbc < SBC_AFilter)  & (resultsAll1$hsp < HSP_AFilter) & (resultsAll1$fpe < FPE_AFilter)) 
-  subsetB <- filter(resultsAll2,  (resultsAll2$msep < error_BFilter) & (resultsAll2$adjr > adjR_Bfilter)  & ((resultsAll2$cp-resultsAll2$n) <= mcp_B_floor) & (resultsAll2$n < size_B_floor)& (resultsAll2$aic < AIC_BFilter) & (resultsAll2$sbc < SBC_BFilter)  & (resultsAll2$hsp < HSP_BFilter) & (resultsAll2$fpe < FPE_BFilter)) 
+  #& (resultsAll1$fpe < FPE_AFilter)
+  subsetA <- filter(resultsAll1,  (resultsAll1$msep < error_AFilter) & (resultsAll1$adjr > adjR_Afilter)  & ((resultsAll1$cp-resultsAll1$n) <= mcp_A_floor) & (resultsAll1$n < size_A_floor)& (resultsAll1$aic < AIC_AFilter) &(resultsAll1$sbc < SBC_AFilter)  & (resultsAll1$hsp < HSP_AFilter) ) 
+  subsetB <- filter(resultsAll2,  (resultsAll2$msep < error_BFilter) & (resultsAll2$adjr > adjR_Bfilter)  & ((resultsAll2$cp-resultsAll2$n) <= mcp_B_floor) & (resultsAll2$n < size_B_floor)& (resultsAll2$aic < AIC_BFilter) & (resultsAll2$sbc < SBC_BFilter)  & (resultsAll2$hsp < HSP_BFilter) ) 
   
 }
 
@@ -438,7 +453,7 @@ for (i in seq(f_list))
   # used for averages
   
   #i=3
-  for (i in 1:10)
+  for (i in 1:3)
   {
     s_true=0
 
@@ -548,7 +563,7 @@ for (i in seq(f_list))
   holding <- rbind(c(factor_list, resultsAll$n, paste("cv", toString(i)), "betas", "pvalues", mean(as.numeric(as.character(cv_model10[,6]))),mean(as.numeric(as.character(cv_model10[,7]))),mean(as.numeric(as.character(cv_model10[,8]))),mean(as.numeric(as.character(cv_model10[,9])))))
   #colnames(cv_model10_log) <- cnames
   cv_model10_log <- rbind(cv_model10_log,holding)
-  View(cv_model10_log)
+  #View(cv_model10_log)
   
   #reset cv_model10
   cv_model10 <- c()
