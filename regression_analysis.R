@@ -303,7 +303,7 @@ training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
 #same xylist to two different training partitions
 xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
-#t1 and t2 needed foed ols_step_app_possible
+#reshuffle
 t1 <- train1_xy_set[c(yField,xyList)]
 t2 <- train2_xy_set[c(yField,xyList)]
 training1Model <- lm(yFYield_CSUSHPINSA~.,t1)
