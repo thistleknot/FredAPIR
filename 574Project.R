@@ -1,3 +1,11 @@
+require(hydroGOF)
+library(MASS)
+library("corrplot")
+library(leaps)
+library(FNN)
+#library(fastDummies)
+library(rpart); library(rpart.plot)
+
 pre_MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
 #fedvar was causing too much chaos with trainingDatasets having all 0's
@@ -137,7 +145,6 @@ set.seed(256)
 
 # install a package below if not yet
 # install.packages('hydroGOF')
-require(hydroGOF)
 
 #sqrt(mean((dat5[id.test, 'Price'] - yhat)^2, na.rm=T)) ## manually calculate it! same
 
@@ -158,7 +165,6 @@ require(hydroGOF)
 ######################################################
 ## Additional topic: variable selection (backward, forward, best subset)
 # a good resource: http://www.stat.columbia.edu/~martin/W2024/R10.pdf
-library(MASS)
 
 ### forward selection ###
 ## step 1: fit a null model and a full model first
@@ -215,15 +221,7 @@ for (i in 2:nc)
 
 #correlation
 cor(dat[[1]], dat, use='na.or.complete')
-# check collinearity #
-#par(mfrow=c(1,1))
-layout(matrix(c(1,2,3,4,5,6,7,8,9),3,3))
-for (i in 2:nc)
-{
-  
-}
 
-library("corrplot")
 layout(matrix(c(1),1,1))
 #correlation matrix of backwards
 corrplot( cor(dat[c('yFYield_CSUSHPINSA',tail(row.names(data.frame(obj2$coefficients)),-1))], use='na.or.complete'))
@@ -260,7 +258,6 @@ bestRMSE = min(rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1),rmse(dat[id.test,
 
 #pick filtered subset from above
 # best subset
-library(leaps)
 obj4 = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
 ## allow up to 20 variables in the model; we should put a constraint like this otherwise it will run forever
 summary(obj4)
@@ -282,20 +279,13 @@ par(mfrow = c(2, 2))
 plot(obj2) # not bad
 
 yhat = predict(obj2, newdata=dat[id.test, ])
-require(hydroGOF)
 ytest = dat[id.test, 'yFYield_CSUSHPINSA']
 rmse(ytest, yhat)
 #0.006055546
 
 ## 2. kNN prediction ##
-library(FNN)
 
 knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = 3)
-
-# not working since there are 2 string variables: Fuel_Type, Color
-library(fastDummies)
-#dat5 = fastDummies::dummy_cols(dat4)
-#dat6 = subset(dat5, select = -c(Fuel_Type, Color))
 
 knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
   vec.rmse = rep(NA, kmax)
@@ -311,15 +301,84 @@ knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train],
 # 0.01844997
 
 ## 3. Regression Tree ##
-library(rpart); library(rpart.plot)
 fit = rpart(yFYield_CSUSHPINSA~., method="anova", data=dat[id.train,])
 par(mfrow=c(1,1))
 rpart.plot(fit, roundint=FALSE)
 
+#drop 1st column from prediction x's
 yhat.test = predict(fit, newdata = dat[id.test,-1])
 rmse(yhat.test, ytest)
 #0.01440478
 
 #### looks like MLR is the best one! ####
 round(summary(obj2)$coef, 3)
+
+#setup for classification
+BL_yField <- 'BL_yFYield_CSUSHPINSA'
+
+yField = BL_yField
+
+y2 <- MyData[yField]
+
+dat2 <- cbind(y2,x)
+
+## 1. Logistic Regression ##
+obj_LR.null = glm(BL_yFYield_CSUSHPINSA ~ 1, data = dat2, family = 'binomial')
+obj_LR.full = glm(BL_yFYield_CSUSHPINSA ~ ., data = dat2, family = 'binomial')
+full.formula = formula(obj_LR.full)
+
+obj4 = step(obj.null, direction='forward', scope=full.formula) # it will print out models in each step
+summary(obj4) # it will give you the final model
+
+#output predictions
+#drop 1st column from prediction x's
+prob.hat = predict(obj4, newdata=dat2[id.test, -1], type='response')
+
+#create array and initialize full size [of id.test] to 0
+yhat.test = rep(0, length(id.test))
+
+##go through and set cutoff probability over a threshold to 1
+yhat.test[prob.hat > .5] = 1
+
+#0 error
+mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
+# 0.8055556
+
+## 2. kNN classification ##
+knn.bestK = function(train, test, y.train, y.test, k.max = 20) {
+  k.grid = seq(1, k.max, 2)
+  fun.tmp = function(x) {
+    y.hat = knn(train, test, y.train, k = x, prob=F)
+    return(sum(y.hat != y.test))
+  }
+  error = unlist(lapply(k.grid, fun.tmp))/length(y.test)
+  out = list(k.optimal = k.grid[which.min(error)], error.min = min(error), error)
+  return(out)
+}
+
+knn.bestK(dat[id.train, ], dat[id.test, ], dat2$BL_yFYield_CSUSHPINSA[id.train], dat2$BL_yFYield_CSUSHPINSA[id.test])
+#Optimal
+#7
+#0.1666667
+
+## 3. Classificaiton Tree ##
+fit = rpart(BL_yFYield_CSUSHPINSA~., method="class", data=dat2[id.train,])
+par(mfrow=c(1,1))
+rpart.plot(fit,roundint=FALSE)
+
+#2 is to remove 2nd column, end point is to have only one column, 
+prob.pred = predict(fit, newdata = dat2[id.test,-1])[,2]
+yhat.test = rep(0, length(id.test))
+yhat.test[prob.pred > .5] = 1
+mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
+#0.4444444
+
+#### looks like logistic regression is the best one! ####
+round(summary(obj4)$coef, 3)
+out = data.frame(summary(obj4)$coef)
+out$OR = exp(out[,1])
+round(out, 3)
+
+
+
 
