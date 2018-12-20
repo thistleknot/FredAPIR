@@ -73,7 +73,6 @@ preset_rng <- sample(nrow(MyData), replace=F)
 #dat <- dat[-which(colnames(dat) == 'Met_Color')]
 dat <- cbind(y,x)
 
-
 #View(colnames(MyData))
 vars <- c()
 #data is too big for exhaustive search
@@ -163,20 +162,18 @@ library(MASS)
 ### forward selection ###
 ## step 1: fit a null model and a full model first
 
-# dat[[1]] is fieldOfInterest
-#can't use dat[[1]] because it will add it to the current dataset
+
+#can't use dat[[1]] because it will add it to the current dataset, nor fieldOfInterest because it isn't read properly as a string nor toString(fieldOfInterest)
 obj.null = lm(yFYield_CSUSHPINSA ~ 1, dat) # only intercept, 1, is included in the model
 # obj.full = lm(Price ~ ., dat = dat5[id.train, ]) # if not specifying any independent variables, all other than Price will be independent variables
 obj.full = lm(yFYield_CSUSHPINSA ~ .,dat = dat)
-
 ## scope is to start from a null model and end with a full model; direction is forward
+
+#these are best final models after stepwise is applied
 obj1 = step(obj.null, scope=list(lower=obj.null, upper=obj.full), direction='forward') # forward selection by Akaike information criterion (AIC)
-
 # Mallows's Cp is equivalent to AIC in the case of (Gaussian) linear regression
-
 ### backward elimination ###
 obj2 = step(obj.full, scope=list(lower=obj.null, upper=obj.full), direction='backward') # start with full and end with null; reversed comparing to forward
-
 ### stepwise selection ###
 obj3 = step(obj.null, scope=list(lower=obj.null, upper=obj.full), direction='both') # start with full and end with null
 
@@ -188,9 +185,7 @@ summary(obj3) # end up with a model with 12 variables, final model same as backw
 length(obj3$coefficients)
 
 data.frame((obj1$coefficients))
-
 data.frame((obj2$coefficients))
-
 data.frame((obj3$coefficients))
 
 #looking at backwards
@@ -202,16 +197,13 @@ hist(obj1$resid)
 hist(obj2$resid)
 hist(obj3$resid)
 
-#correlation
-cor(dat[[1]], dat, use='na.or.complete')
-
 # Homoscedasticity
 plot(obj1$resid, obj1$fitted)
 plot(obj2$resid, obj2$fitted)
 plot(obj2$resid, obj3$fitted)
 
 #use this on final model
-dat[[tail(row.names(data.frame(obj3$coefficients)),-1)]]
+
 # linearity
 layout(matrix(c(1,2,3,4,5,6,7,8,9),3,3)) # check the difference by removing this line
 nc = length(obj2$coefficients)-1
@@ -219,6 +211,21 @@ for (i in 2:nc)
 {
   plot(dat[[tail(row.names(data.frame(obj2$coefficients)),-1)[i]]], dat[[1]])
 }
+
+#correlation
+cor(dat[[1]], dat, use='na.or.complete')
+# check collinearity #
+#par(mfrow=c(1,1))
+layout(matrix(c(1,2,3,4,5,6,7,8,9),3,3))
+for (i in 2:nc)
+{
+  
+}
+
+library("corrplot")
+layout(matrix(c(1),1,1))
+#correlation matrix of backwards
+corrplot( cor(dat[c('yFYield_CSUSHPINSA',tail(row.names(data.frame(obj2$coefficients)),-1))], use='na.or.complete'))
 
 #normality
 # actually, plot(obj) gives you QQ plot, better way to check it
@@ -237,23 +244,22 @@ yhat1 = predict(obj1, newdata = dat[id.test, ])
 yhat2 = predict(obj2, newdata = dat[id.test, ])
 yhat3 = predict(obj3, newdata = dat[id.test, ])
 
-rmse(dat[id.test, 'Price'], yhat1) ## RMSE for test data
-rmse(dat[id.test, 'Price'], yhat2) ## RMSE for test data
-rmse(dat[id.test, 'Price'], yhat3) ## RMSE for test data
+rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
+rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
+rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3) ## RMSE for test data
 
-plot(dat[id.test, 'Price'], yhat1, xlab='Actual y', ylab='Fitted y')
+plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
-plot(dat[id.test, 'Price'], yhat2, xlab='Actual y', ylab='Fitted y')
+plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
-plot(dat[id.test, 'Price'], yhat3, xlab='Actual y', ylab='Fitted y')
+plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
 
 
 #pick filtered subset from above
 # best subset
 library(leaps)
-obj4 = regsubsets(Price ~ .,
-                  data = dat[id.train, ], nvmax=20)
+obj4 = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
 ## allow up to 20 variables in the model; we should put a constraint like this otherwise it will run forever
 summary(obj4)
 
