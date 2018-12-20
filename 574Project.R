@@ -273,11 +273,9 @@ plot(obj4, scale="adjr2") # black color indicates a variable is used in the mode
 ####################################################
 # compare prediction results of forward, backward, stepwise
 
-
 # rmse are 1111.592, 1115.026, 1115.026 for each
 # rmse are very similar
 # we choose whichever one of the three methods
-
 
 # model diagnosis #
 par(mfrow = c(2, 2))
