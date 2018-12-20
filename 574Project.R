@@ -287,6 +287,7 @@ yhat = predict(obj2, newdata=dat[id.test, ])
 require(hydroGOF)
 ytest = dat[id.test, 'yFYield_CSUSHPINSA']
 rmse(ytest, yhat)
+#0.006055546
 
 ## 2. kNN prediction ##
 library(FNN)
@@ -309,16 +310,18 @@ knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
 
 #knn.reg.bestK(x_training, x_test, y_training, y_test)
 knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
+# 0.01844997
 
 ## 3. Regression Tree ##
 library(rpart); library(rpart.plot)
-fit = rpart(Price~., method="anova", data=dat4[id.train,])
+fit = rpart(yFYield_CSUSHPINSA~., method="anova", data=dat[id.train,])
 par(mfrow=c(1,1))
-rpart.plot(fit)
+rpart.plot(fit, roundint=FALSE)
 
-yhat.test = predict(fit, newdata = dat4[id.test,-1])
+yhat.test = predict(fit, newdata = dat[id.test,-1])
 rmse(yhat.test, ytest)
+#0.01440478
 
 #### looks like MLR is the best one! ####
-round(summary(obj1)$coef, 3)
+round(summary(obj2)$coef, 3)
 
