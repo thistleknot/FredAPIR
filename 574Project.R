@@ -71,6 +71,7 @@ preset_rng <- sample(nrow(MyData), replace=F)
 #preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
 
 #dat <- dat[-which(colnames(dat) == 'Met_Color')]
+#dat is yxlist
 dat <- cbind(y,x)
 
 #View(colnames(MyData))
@@ -255,6 +256,7 @@ abline(0,1,col='red')
 plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
 
+bestRMSE = min(rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1),rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2),rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3))
 
 #pick filtered subset from above
 # best subset
@@ -275,4 +277,48 @@ plot(obj4, scale="adjr2") # black color indicates a variable is used in the mode
 # rmse are 1111.592, 1115.026, 1115.026 for each
 # rmse are very similar
 # we choose whichever one of the three methods
+
+
+# model diagnosis #
+par(mfrow = c(2, 2))
+plot(obj2) # not bad
+
+yhat = predict(obj2, newdata=dat[id.test, ])
+require(hydroGOF)
+ytest = dat[id.test, 'yFYield_CSUSHPINSA']
+rmse(ytest, yhat)
+
+## 2. kNN prediction ##
+library(FNN)
+
+knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = 3)
+
+# not working since there are 2 string variables: Fuel_Type, Color
+library(fastDummies)
+#dat5 = fastDummies::dummy_cols(dat4)
+#dat6 = subset(dat5, select = -c(Fuel_Type, Color))
+
+knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
+  vec.rmse = rep(NA, kmax)
+  for (k in 1:kmax) {
+    yhat.test = knn.reg(Xtrain, Xtest, ytrain, k)$pred
+    vec.rmse[k] = rmse(yhat.test, ytest)
+  }
+  list(k.opt = which.min(vec.rmse), rmse.min = min(vec.rmse), vec.rmse)
+}
+
+#knn.reg.bestK(x_training, x_test, y_training, y_test)
+knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
+
+## 3. Regression Tree ##
+library(rpart); library(rpart.plot)
+fit = rpart(Price~., method="anova", data=dat4[id.train,])
+par(mfrow=c(1,1))
+rpart.plot(fit)
+
+yhat.test = predict(fit, newdata = dat4[id.test,-1])
+rmse(yhat.test, ytest)
+
+#### looks like MLR is the best one! ####
+round(summary(obj1)$coef, 3)
 
