@@ -112,16 +112,18 @@ nrow(y)
 
 #important that # of rows exceeds # of columns fed in
 #else doing expensive error try blocks due to aliased coefficients
-train_size = .925
+train_size = .80
 #test_size = 1- train_size
 
 preset_rng <- sample(nrow(MyData), replace=F)
 #static training set
 
 #training/validation sets (split into rebootstrapped 1:1 distinct partitions)
-preset1 <- preset_rng[1:floor(nrow(MyData)*train_size)]
+#preset1 <- preset_rng[1:floor(nrow(MyData)*train_size)]
+preset1 <- preset_rng[1:nrow(MyData)*train_size]
 #static testing set
-preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
+#preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
+preset2 <- setdiff(1:nrow(MyData), preset1) # setdiff gives the set difference
 
 #View(colnames(MyData))
 vars <- c()
@@ -232,7 +234,7 @@ for (i in 1:10)
   print(aflag)
   if(aflag==0)
   {
-    resultsAAll <- ols_step_backward_p(training1Model, penter=.1)
+    resultsAAll <- ols_step_forward_p(training1Model, penter=.05)
   }
   
   
@@ -257,7 +259,7 @@ for (i in 1:10)
   print(bflag)
   if(bflag==0)
   {
-    resultsBAll <- ols_step_backward_p(training2Model, penter=.1)
+    resultsBAll <- ols_step_forward_p(training2Model, penter=.05)
   }
   
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
@@ -303,7 +305,7 @@ training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
 #same xylist to two different training partitions
 xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
-#reshuffle
+#t1 and t2 needed for ols_step_all_possible
 t1 <- train1_xy_set[c(yField,xyList)]
 t2 <- train2_xy_set[c(yField,xyList)]
 training1Model <- lm(yFYield_CSUSHPINSA~.,t1)
@@ -311,8 +313,8 @@ training2Model <- lm(yFYield_CSUSHPINSA~.,t2)
 
 #resultsAll1 <- c()
 #resultsAll2 <- c()
-resultsAll1 <- ols_step_all_possible(training1Model, p=.075)
-resultsAll2 <- ols_step_all_possible(training1Model, p=.075)
+resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
+resultsAll2 <- ols_step_all_possible(training1Model, p=.05)
 
 #used for comprehensive lists
 {
@@ -365,8 +367,8 @@ resultsAll2 <- ols_step_all_possible(training1Model, p=.075)
   #Average prediction mean squared error
   #Final Prediction Error
   #doesnt work with backwards
-  #FPE_AFilter <- min(mean(resultsAll1$fpe),median(resultsAll1$fpe))
-  #FPE_BFilter <- min(mean(resultsAll2$fpe),median(resultsAll2$fpe))
+  FPE_AFilter <- min(mean(resultsAll1$fpe),median(resultsAll1$fpe))
+  FPE_BFilter <- min(mean(resultsAll2$fpe),median(resultsAll2$fpe))
   
   #filtered
   #AIC and BIC hold the same interpretation in terms of model comparison. That is, the larger difference in either AIC or BIC indicates stronger evidence for one model over the other 
@@ -379,8 +381,8 @@ resultsAll2 <- ols_step_all_possible(training1Model, p=.075)
   
   #resultsAAll$
   #& (resultsAll1$fpe < FPE_AFilter)
-  subsetA <- filter(resultsAll1,  (resultsAll1$msep < error_AFilter) & (resultsAll1$adjr > adjR_Afilter)  & ((resultsAll1$cp-resultsAll1$n) <= mcp_A_floor) & (resultsAll1$n < size_A_floor)& (resultsAll1$aic < AIC_AFilter) &(resultsAll1$sbc < SBC_AFilter)  & (resultsAll1$hsp < HSP_AFilter) ) 
-  subsetB <- filter(resultsAll2,  (resultsAll2$msep < error_BFilter) & (resultsAll2$adjr > adjR_Bfilter)  & ((resultsAll2$cp-resultsAll2$n) <= mcp_B_floor) & (resultsAll2$n < size_B_floor)& (resultsAll2$aic < AIC_BFilter) & (resultsAll2$sbc < SBC_BFilter)  & (resultsAll2$hsp < HSP_BFilter) ) 
+  subsetA <- filter(resultsAll1,  (resultsAll1$msep < error_AFilter) & (resultsAll1$adjr > adjR_Afilter)  & ((resultsAll1$cp-resultsAll1$n) <= mcp_A_floor) & (resultsAll1$n < size_A_floor)& (resultsAll1$aic < AIC_AFilter) &(resultsAll1$sbc < SBC_AFilter)  & (resultsAll1$hsp < HSP_AFilter) & (resultsAll1$fpe < FPE_AFilter) ) 
+  subsetB <- filter(resultsAll2,  (resultsAll2$msep < error_BFilter) & (resultsAll2$adjr > adjR_Bfilter)  & ((resultsAll2$cp-resultsAll2$n) <= mcp_B_floor) & (resultsAll2$n < size_B_floor)& (resultsAll2$aic < AIC_BFilter) & (resultsAll2$sbc < SBC_BFilter)  & (resultsAll2$hsp < HSP_BFilter) & (resultsAll2$fpe < FPE_BFilter)) 
   
 }
 
@@ -584,7 +586,7 @@ for (i in seq(f_list))
 colnames(cv_model10_log) <- cnames
 RMSE_error_Filter = sd(as.numeric(as.character(cv_model10_log$RMSE)))+min(as.numeric(as.character(cv_model10_log$RMSE)))
 
-topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter))
+topPicks <- filter(cv_model10_log, (as.numeric(as.character(cv_model10_log$RMSE)) < RMSE_error_Filter) )
 
 colnames(topPicks) <- cnames
 par(mfrow=2:1)
@@ -608,10 +610,18 @@ colnames(topPicks) <- cnames
 #order(as.numeric(as.character(topPicks$'RMSE')))
 
 #manual sort.... but order is not confirmed as correct
+
+post_holding <- c()
+#colnames(cv_model10_log) <- cnames
+post_cv_model10 <- c()
+#View(cv_model10_log)
+
+#reset cv_model10
+post_cv_model <- c()
 for (i in topPicks$factor_list)
 {
-  #rescramble set2
-  set2 <- preset2[sample(length(preset2), replace=F)]
+  
+  
   #upper (test)
   
   
@@ -633,32 +643,61 @@ for (i in topPicks$factor_list)
   vars <- scan(text = factor_list, what = "")
   
   names <- c(names, vars)
-
-  post_training <- set2[1:floor(length(set2)/2)]
-  post_testing <- set2[ceiling(length(set2)/2):length(set2)]
+  for (i in 1:3)
+  {
+    #rescramble set2
+    set2 <- preset2[sample(length(preset2), replace=F)]
+    
+    #great question, train on old data (set1), or train on new data? (set2)
+    #equal split
+    post_training <- set2[1:floor(length(set2)*.5)]
+    post_testing <- set2[ceiling(length(set2)*.5):length(set2)]
+    
+    post_training_data <- c()
+    post_testing_data <- c()
+    
+    post_training_data <- MyData[post_training, ][c(names)]  # model training data
+    post_testing_data <- MyData[post_testing, ][c(names)]  # model training data
+    
+    post_testing_xy_set <- c()
+    post_testing_xy_set <- post_testing_data
+    
+    post_training_xy_set <- c()
+    post_training_xy_set <- post_training_data
+    
+    post_trainingModel <- lm(post_training_data)
+    #post_testing_Model <- lm(post_testing_data)
+    
+    post_fit <- lm(post_trainingModel, data=post_testing_xy_set)
+    post_testdistPred <- predict(post_fit)
+    #post_trainValidPred <- predict(trainingValidModel)
+    print(summary(post_fit))
+    
+    post_resultsAll <- ols_regress(fit, p=.05)
+    
+    #http://ugrad.stat.ubc.ca/R/library/locfit/html/cp.html
+    #need example use
+    #cp(valid1_xy_set[names],sig2=1)
+    
+    post_holding <- rbind(c(factor_list, post_resultsAll$n, paste("cv", toString(i)), toString(post_resultsAll$betas), toString(post_resultsAll$pvalues), RMSE(fit), PRESS(fit), post_resultsAll$adjr, post_resultsAll$p))
+    
+    #final RMSE should be evaluated against model that performs best against actual data.
+    post_cv_model <- rbind(post_cv_model,post_holding)
+    
+    post_cv_model10 <- rbind(post_cv_model10,post_holding)    
+    
+  }
+  post_holding <- rbind(c(factor_list, resultsAll$n, paste("cv", toString(i)), "betas", "pvalues", mean(as.numeric(as.character(post_cv_model10[,6]))),mean(as.numeric(as.character(post_cv_model10[,7]))),mean(as.numeric(as.character(post_cv_model10[,8]))),mean(as.numeric(as.character(post_cv_model10[,9])))))
+  #colnames(cv_model10_log) <- cnames
+  post_cv_model10 <- rbind(post_cv_model10,holding)
+  #View(cv_model10_log)
   
-  post_training_data <- c()
-  post_testing_data <- c()
+  #reset cv_model10
+  post_cv_model <- c()
 
-  post_training_data <- MyData[post_training, ][c(names)]  # model training data
-  post_testing_data <- MyData[post_testing, ][c(names)]  # model training data
-
-  post_testing_xy_set <- c()
-  post_testing_xy_set <- post_testing_data
-  
-  post_training_xy_set <- c()
-  post_training_xy_set <- post_training_data
-  
-  post_trainingModel <- lm(post_training_data)
-  #post_testing_Model <- lm(post_testing_data)
- 
-  post_fit <- lm(post_trainingModel, data=post_testing_xy_set)
-  post_testdistPred <- predict(post_fit)
-  #post_trainValidPred <- predict(trainingValidModel)
-  print(summary(post_fit))
 }
 
-#View()
+View(post_cv_model10)
 
 #wish to tabulate picked factor names
 #as.table(topPicks)
