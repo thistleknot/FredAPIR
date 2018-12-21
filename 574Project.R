@@ -113,7 +113,6 @@ set.seed(256)
 
   training1Model <- lm(train1_xy_set)
 
-  
 ## below is just an example with manually selected variable: age, fuel type and weight; just for illustration purpose
 #obj = lm(Price ~ Age_08_04 + factor(Fuel_Type) + Weight, data = dat[id.train, ])
 # dat[id.train, ] takes rows of id.train
@@ -136,31 +135,13 @@ set.seed(256)
 #obj$fitted
 
 # predict the future observation!
-#yhat = predict(obj, newdata = dat5[id.test, ])
+#yhat = predict(obj, newdata = dat[id.test, ])
 #length(yhat)
 #length(id.test) # just to check if the same number of predicted value as id.test is reported
 
-#plot(dat[id.test, 'Price'], yhat, xlab='Actual y', ylab='Fitted y')
-#abline(0, 1, col='red') # add a line with intercept 0 and slope 1; we want to see points around this line
-
-# install a package below if not yet
-# install.packages('hydroGOF')
-
-#sqrt(mean((dat5[id.test, 'Price'] - yhat)^2, na.rm=T)) ## manually calculate it! same
-
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
-# Milestone! We now know how to do MLR with manually selected variables
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
-#######################################################################
+#residual plot line.
+plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat, xlab='Actual y', ylab='Fitted y')
+abline(0, 1, col='red') # add a line with intercept 0 and slope 1; we want to see points around this line
 
 ######################################################
 ## Additional topic: variable selection (backward, forward, best subset)
@@ -168,7 +149,6 @@ set.seed(256)
 
 ### forward selection ###
 ## step 1: fit a null model and a full model first
-
 
 #can't use dat[[1]] because it will add it to the current dataset, nor fieldOfInterest because it isn't read properly as a string nor toString(fieldOfInterest)
 obj.null = lm(yFYield_CSUSHPINSA ~ 1, dat) # only intercept, 1, is included in the model
@@ -240,8 +220,14 @@ plot(obj2)
 plot(obj3)
 
 yhat1 = predict(obj1, newdata = dat[id.test, ])
+#deviations sqrt(deviations squared)
+sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat1)^2, na.rm=T)) ## manually calculate it! same
+
 yhat2 = predict(obj2, newdata = dat[id.test, ])
+sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat2)^2, na.rm=T)) ## manually calculate it! same
+
 yhat3 = predict(obj3, newdata = dat[id.test, ])
+sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat3)^2, na.rm=T)) ## manually calculate it! same
 
 rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
 rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
