@@ -7,7 +7,8 @@ library(FNN)
 #install.packages('party')
 #install.packages('ROCR')
 #library(fastDummies)
-library(rpart); 
+library(ROCR)
+library(rpart)
 library(rpart.plot)
 require(rpart)
 require(party)
@@ -88,6 +89,12 @@ preset_rng <- sample(nrow(MyData), replace=F)
 #dat <- dat[-which(colnames(dat) == 'Met_Color')]
 #dat is yxlist
 dat <- cbind(y,x)
+
+#setup for classification
+BL_yField <- 'BL_yFYield_CSUSHPINSA'
+y2 <- MyData[BL_yField]
+dat2 <- cbind(y2,x)
+
 
 #View(colnames(MyData))
 vars <- c()
@@ -305,6 +312,16 @@ yhat.test = rep(0, length(id.test))
 yhat.test[yhat > 0] = 1
 mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
 
+par(mfrow = c(1, 1))
+#https://hopstat.wordpress.com/2014/12/19/a-small-introduction-to-the-rocr-package/
+#https://stackoverflow.com/questions/40783331/rocr-error-format-of-predictions-is-invalid
+#pred <- prediction(ROCR.simple$predictions,ROCR.simple$labels)
+#pred/prob, actual
+pred <- prediction(as.numeric(yhat),as.numeric(dat2$BL_yFYield_CSUSHPINSA[id.test]))
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+plot(roc.perf)
+abline(a=0, b= 1)
+
 ## 2. kNN prediction ##
 
 knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = 3)
@@ -348,13 +365,6 @@ mean(class.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 #### looks like MLR is the best one! ####
 round(summary(bestModel)$coef, 3)
-
-#setup for classification
-BL_yField <- 'BL_yFYield_CSUSHPINSA'
-
-yField = BL_yField
-y2 <- MyData[yField]
-dat2 <- cbind(y2,x)
 
 ## 1. Logistic Regression ##
 obj_LR.null = glm(BL_yFYield_CSUSHPINSA ~ 1, data = dat2, family = 'binomial')
@@ -422,3 +432,4 @@ round(summary(obj4)$coef, 3)
 out = data.frame(summary(obj4)$coef)
 out$OR = exp(out[,1])
 round(out, 3)
+
