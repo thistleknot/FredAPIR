@@ -14,8 +14,9 @@ def read_yields():
   #append if desire a sample
   #.sample(50, axis=1)
   #attempts at trying to count 0's and drop columns have failed in R, so I'm hard coding the column drop here
-  x = df.drop(columns=['test2_z.date','CSUSHPINSA','future'])
-  y = df.loc[0:,['CSUSHPINSA']]
+  #wish to remove last record (assuming it's not a quarter)
+  x = df.drop(columns=['test2_z.date','CSUSHPINSA','future'])[0:-1]
+  y = df.loc[0:,['CSUSHPINSA']][0:-1]
   date = df['test2_z.date']
   xLagged = x.shift(+1)
   yLagged = y.shift(+1)

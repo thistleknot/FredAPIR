@@ -3,8 +3,14 @@ library(MASS)
 library("corrplot")
 library(leaps)
 library(FNN)
+#require(BCA)
+#install.packages('party')
+#install.packages('ROCR')
 #library(fastDummies)
-library(rpart); library(rpart.plot)
+library(rpart); 
+library(rpart.plot)
+require(rpart)
+require(party)
 
 pre_MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
@@ -68,6 +74,7 @@ nrow(x)
 nrow(y)
 
 train_size = .70
+#not used
 #test_size = 1- train_size
 
 preset_rng <- sample(nrow(MyData), replace=F)
@@ -96,13 +103,17 @@ set.seed(256)
   id.test = setdiff(1:nrow(dat), id.train) # setdiff gives the set difference
   
   training1Data <- c()
+  testing1Data <- c()
   
   #new plan is to create two randomized partitions that will have complete dataset algo's done on them.
   training1Data <- MyData[id.train, ]  # model training data
+  testing1Data <- MyData[id.test, ]
   
   train1_xy_set <- c()
+  test1_xy_set <- c()
   
   train1_xy_set <- training1Data[c(yField,xList)]
+  test1_xy_set <- testing1Data[c(yField,xList)]
   
   names <- c()
   
@@ -112,6 +123,10 @@ set.seed(256)
   names <- c(names, vars)
 
   training1Model <- lm(train1_xy_set)
+  #testingModel <- lm(test1_xy_set)
+  
+  #fit <- lm(training1Model, data=test1_xy_set)
+  #summary(fit)
 
 ## below is just an example with manually selected variable: age, fuel type and weight; just for illustration purpose
 #obj = lm(Price ~ Age_08_04 + factor(Fuel_Type) + Weight, data = dat[id.train, ])
@@ -158,6 +173,7 @@ obj.full = lm(yFYield_CSUSHPINSA ~ .,dat = dat)
 
 #these are best final models after stepwise is applied
 obj1 = step(obj.null, scope=list(lower=obj.null, upper=obj.full), direction='forward') # forward selection by Akaike information criterion (AIC)
+
 # Mallows's Cp is equivalent to AIC in the case of (Gaussian) linear regression
 ### backward elimination ###
 obj2 = step(obj.full, scope=list(lower=obj.null, upper=obj.full), direction='backward') # start with full and end with null; reversed comparing to forward
@@ -183,7 +199,7 @@ rownames(data.frame((obj2$coefficients)))
 hist(obj1$resid)
 hist(obj2$resid)
 hist(obj3$resid)
-
+#View(obj2)
 # Homoscedasticity
 plot(obj1$resid, obj1$fitted)
 plot(obj2$resid, obj2$fitted)
@@ -229,6 +245,7 @@ sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat2)^2, na.rm=T)) ## manually 
 yhat3 = predict(obj3, newdata = dat[id.test, ])
 sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat3)^2, na.rm=T)) ## manually calculate it! same
 
+#no need to derive R^2 for every model.  Quick and easy
 fwdstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
 #0.007270917
 bckstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
@@ -252,7 +269,7 @@ abline(0,1,col='red')
 # best subset
 
 subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
-
+subsets
 ## allow up to 20 variables in the model; we should put a constraint like this otherwise it will run forever
 
 # not recommended to use best subset at all
@@ -275,10 +292,18 @@ if(stepboth_rmse == bestRMSE) {bestModel <- obj3}
 par(mfrow = c(2, 2))
 plot(bestModel) # not bad
 
+bestModel$coefficients
+
+bestModel$terms
+
 yhat = predict(bestModel, newdata=dat[id.test, ])
 ytest = dat[id.test, 'yFYield_CSUSHPINSA']
 rmse(ytest, yhat)
-#0.006055546
+
+#test classification using best linear model
+yhat.test = rep(0, length(id.test))
+yhat.test[yhat > 0] = 1
+mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 ## 2. kNN prediction ##
 
@@ -294,8 +319,16 @@ knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
 }
 
 #knn.reg.bestK(x_training, x_test, y_training, y_test)
-knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
-# 0.01844997
+knn_model <- knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
+knn_model
+
+##0.01694881
+
+#test classification using knn
+yhat = knn.reg(dat[id.train, ], dat[id.test, ],dat$yFYield_CSUSHPINSA[id.train], knn_model$k.opt)
+yhat.test = rep(0, length(id.test))
+yhat.test[yhat$pred > 0] = 1
+mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 ## 3. Regression Tree ##
 fit = rpart(yFYield_CSUSHPINSA~., method="anova", data=dat[id.train,])
@@ -305,7 +338,13 @@ rpart.plot(fit, roundint=FALSE)
 #drop 1st column from prediction x's
 yhat.test = predict(fit, newdata = dat[id.test,-1])
 rmse(yhat.test, ytest)
-#0.01440478
+#0.02422354
+
+#test classification using regression tree
+class.test = rep(0, length(id.test))
+class.test[yhat.test > 0] = 1
+mean(class.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
+#0.2777778
 
 #### looks like MLR is the best one! ####
 round(summary(bestModel)$coef, 3)
@@ -328,16 +367,17 @@ summary(obj4) # it will give you the final model
 #output predictions
 #drop 1st column from prediction x's
 prob.hat = predict(obj4, newdata=dat2[id.test, -1], type='response')
+hist(prob.hat)
 
 #create array and initialize full size [of id.test] to 0
 yhat.test = rep(0, length(id.test))
 
-##go through and set cutoff probability over a threshold to 1
-yhat.test[prob.hat > .5] = 1
-
 #0 error
+#how many don't equal correctly guessed
 mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
-# 0.8055556
+# 0.66
+
+#lift.chart(modelList, data, targLevel, trueResp, type = "cumulative", sub = "")
 
 ## 2. kNN classification ##
 knn.bestK = function(train, test, y.train, y.test, k.max = 20) {
@@ -351,10 +391,19 @@ knn.bestK = function(train, test, y.train, y.test, k.max = 20) {
   return(out)
 }
 
-knn.bestK(dat[id.train, ], dat[id.test, ], dat2$BL_yFYield_CSUSHPINSA[id.train], dat2$BL_yFYield_CSUSHPINSA[id.test])
-#Optimal
-#7
-#0.1666667
+
+knn_bestK_model <- knn.bestK(dat[id.train, ], dat[id.test, ], dat2$BL_yFYield_CSUSHPINSA[id.train], dat2$BL_yFYield_CSUSHPINSA[id.test])
+knn_bestK_model
+
+#k=5
+##0.33
+
+#predictions
+yhat = knn(dat[id.train, ], dat[id.test, ], knn_bestK_model$k.optimal)
+#test classification using knn
+yhat.test = rep(0, length(id.test))
+yhat.test[yhat$pred > 0] = 1
+mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 ## 3. Classification Tree ##
 fit = rpart(BL_yFYield_CSUSHPINSA~., method="class", data=dat2[id.train,])
@@ -366,14 +415,10 @@ prob.pred = predict(fit, newdata = dat2[id.test,-1])[,2]
 yhat.test = rep(0, length(id.test))
 yhat.test[prob.pred > .5] = 1
 mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
-#0.4444444
+#0.33
 
 #### looks like logistic regression is the best one! ####
 round(summary(obj4)$coef, 3)
 out = data.frame(summary(obj4)$coef)
 out$OR = exp(out[,1])
 round(out, 3)
-
-
-
-
