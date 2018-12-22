@@ -230,11 +230,16 @@ yhat3 = predict(obj3, newdata = dat[id.test, ])
 sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat3)^2, na.rm=T)) ## manually calculate it! same
 
 fwdstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
-#0.009367515
+#0.007270917
 bckstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
-#0.009104385
+#0.006901305
 stepboth_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3) ## RMSE for test data
-#0.009430559
+#0.007343593
+fwdstep_rmse
+bckstep_rmse
+stepboth_rmse
+
+par(mfrow = c(2, 2))
 
 plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
@@ -250,9 +255,6 @@ subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
 
 ## allow up to 20 variables in the model; we should put a constraint like this otherwise it will run forever
 
-par(mfrow=c(1,1)) # par(mfrow=c(m,n)) allows us to put m*n figures in a single plot; if m=n=1, only one figure in the plot
-plot(obj4, scale="adjr2") # black color indicates a variable is used in the model
-
 # not recommended to use best subset at all
 
 ####################################################
@@ -261,6 +263,7 @@ plot(obj4, scale="adjr2") # black color indicates a variable is used in the mode
 # we choose whichever one of the three methods
 
 bestRMSE = min(fwdstep_rmse,bckstep_rmse, stepboth_rmse)
+bestRMSE
 #0.009104385
 bestModel <- c()
 
@@ -311,9 +314,7 @@ round(summary(bestModel)$coef, 3)
 BL_yField <- 'BL_yFYield_CSUSHPINSA'
 
 yField = BL_yField
-
 y2 <- MyData[yField]
-
 dat2 <- cbind(y2,x)
 
 ## 1. Logistic Regression ##
