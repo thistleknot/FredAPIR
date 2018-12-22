@@ -229,9 +229,12 @@ sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat2)^2, na.rm=T)) ## manually 
 yhat3 = predict(obj3, newdata = dat[id.test, ])
 sqrt(mean((dat[id.test, 'yFYield_CSUSHPINSA'] - yhat3)^2, na.rm=T)) ## manually calculate it! same
 
-rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
-rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
-rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3) ## RMSE for test data
+fwdstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1) ## RMSE for test data
+#0.009367515
+bckstep_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2) ## RMSE for test data
+#0.009104385
+stepboth_rmse <- rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3) ## RMSE for test data
+#0.009430559
 
 plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
@@ -240,13 +243,12 @@ abline(0,1,col='red')
 plot(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3, xlab='Actual y', ylab='Fitted y')
 abline(0,1,col='red')
 
-bestRMSE = min(rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat1),rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat2),rmse(dat[id.test, 'yFYield_CSUSHPINSA'], yhat3))
-
 #pick filtered subset from above
 # best subset
-obj4 = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
+
+subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train, ], nvmax=16)
+
 ## allow up to 20 variables in the model; we should put a constraint like this otherwise it will run forever
-summary(obj4)
 
 par(mfrow=c(1,1)) # par(mfrow=c(m,n)) allows us to put m*n figures in a single plot; if m=n=1, only one figure in the plot
 plot(obj4, scale="adjr2") # black color indicates a variable is used in the model
@@ -256,15 +258,21 @@ plot(obj4, scale="adjr2") # black color indicates a variable is used in the mode
 ####################################################
 # compare prediction results of forward, backward, stepwise
 
-# rmse are 1111.592, 1115.026, 1115.026 for each
-# rmse are very similar
 # we choose whichever one of the three methods
+
+bestRMSE = min(fwdstep_rmse,bckstep_rmse, stepboth_rmse)
+#0.009104385
+bestModel <- c()
+
+if(fwdstep_rmse == bestRMSE) {bestModel <- obj1}
+if(bckstep_rmse == bestRMSE) {bestModel <- obj2}
+if(stepboth_rmse == bestRMSE) {bestModel <- obj3}
 
 # model diagnosis #
 par(mfrow = c(2, 2))
-plot(obj2) # not bad
+plot(bestModel) # not bad
 
-yhat = predict(obj2, newdata=dat[id.test, ])
+yhat = predict(bestModel, newdata=dat[id.test, ])
 ytest = dat[id.test, 'yFYield_CSUSHPINSA']
 rmse(ytest, yhat)
 #0.006055546
@@ -297,7 +305,7 @@ rmse(yhat.test, ytest)
 #0.01440478
 
 #### looks like MLR is the best one! ####
-round(summary(obj2)$coef, 3)
+round(summary(bestModel)$coef, 3)
 
 #setup for classification
 BL_yField <- 'BL_yFYield_CSUSHPINSA'
@@ -347,7 +355,7 @@ knn.bestK(dat[id.train, ], dat[id.test, ], dat2$BL_yFYield_CSUSHPINSA[id.train],
 #7
 #0.1666667
 
-## 3. Classificaiton Tree ##
+## 3. Classification Tree ##
 fit = rpart(BL_yFYield_CSUSHPINSA~., method="class", data=dat2[id.train,])
 par(mfrow=c(1,1))
 rpart.plot(fit,roundint=FALSE)

@@ -597,14 +597,19 @@ new4=new3
 #https://stackoverflow.com/questions/36519086/pandas-how-to-get-rid-of-unnamed-column-in-a-dataframe/36519122
 
 source_python("yields.py")
+ncol(new4)
+write.csv(new4, file = "output_test.csv")
 
-write.csv(new4, file = "output.csv")
-
+#new4 <- read.csv(file="output_test.csv", header=TRUE, sep=",")
 read_yields()
 
 #View(new4)
 #View(colnames(new4))
 temp <- read.csv("prepped.csv")
+
+ncol(temp)
+
 View(colnames(temp))
 #data saved as prepped.csv
+
 
