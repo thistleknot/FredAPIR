@@ -133,7 +133,6 @@ for (i in semanticList)
 parsedList<-c(unique(names),'TTLHH','EMRATIO','GOLDAMGBD228NLBM','POPTOTUSA647NWDB','USSTHPI')
 #parsedList<-c(parsedList,"BAA10Y","DCOILBRENTEU","FPCPITOTLZGUSA","IC4WSA","ICSA","MPRIME","TCU","GOLDAMGBD228NLBM")
 
-
 print(parsedList)
 #Sorted by importance
 #parsedList<-c("SPCS20RSA", "DGS1", "PAYEMS", "T10Y3M","TEDRATE","WPU0911","T5YIE","PSAVERT","A191RL1Q225SBEA")
@@ -338,8 +337,6 @@ print(dates)
 test1_z <- zoo(data.frame(combined_data_z))
 #View(test1_z)
 
-
-
 ncol(test1_z)
 nrow(test1_z)
 
@@ -364,8 +361,6 @@ dropColumns = sapply(test1_z, function(x) sum(is.na(x)))
 #View(test)
 
 #sapply(vector(test1_z), function(x) count(x==0))
-
-
 
 #dropColumns2 = sappply(test1_z, function(x) sum(frd$col0 == 0))
 View(dropColumns)
@@ -476,10 +471,9 @@ ncol(test2_z)
 
 # # of 0's
 dropColumns = colSums(test2_z_approxSubset == 0, na.rm = TRUE)
-View(dropcolumns)
+View(dropColumns)
 
 filtered <- c()
-#start from last column
 for (i in 1:nrow(data.frame(dropColumns)))
 {
   #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
@@ -608,11 +602,9 @@ write.csv(new4, file = "output.csv")
 
 read_yields()
 
+#View(new4)
+#View(colnames(new4))
+temp <- read.csv("prepped.csv")
+View(colnames(temp))
 #data saved as prepped.csv
-
-
-
-
-
-
 
