@@ -9,6 +9,7 @@ library(FNN)
 #library(fastDummies)
 library(ROCR)
 library(rpart)
+library(caret)
 library(rpart.plot)
 require(rpart)
 require(party)
@@ -310,7 +311,13 @@ rmse(ytest, yhat)
 #test classification using best linear model
 yhat.test = rep(0, length(id.test))
 yhat.test[yhat > 0] = 1
-mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
+
+#https://machinelearningmastery.com/confusion-matrix-machine-learning/
+
+total_predictions = length(id.test)
+classification_accuracy = correct_predictions / total_predictions
+correct_predictions = sum(yhat.test == dat2$BL_yFYield_CSUSHPINSA[id.test])
+error_rate = (1 - (correct_predictions / total_predictions))
 
 par(mfrow = c(1, 1))
 #https://hopstat.wordpress.com/2014/12/19/a-small-introduction-to-the-rocr-package/
@@ -321,6 +328,8 @@ pred <- prediction(as.numeric(yhat),as.numeric(dat2$BL_yFYield_CSUSHPINSA[id.tes
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
 plot(roc.perf)
 abline(a=0, b= 1)
+
+confusionMatrix(yhat,dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 ## 2. kNN prediction ##
 
