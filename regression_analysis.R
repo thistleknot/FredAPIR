@@ -336,6 +336,8 @@ for (i in 1:divisions)
   
   #print(intersect(splitA.var,splitB.var))
   
+  checkVIFs <- c('yFYield_CSUSHPINSA',tail(row.names(data.frame(resultsAAll$model$coefficients)),-1))
+    
   signif_all <- c()
   
   lmMod <- lm(train1_xy_set[checkVIFs])
@@ -351,7 +353,9 @@ for (i in 1:divisions)
     ld.vars <- attributes(alias(selectedMod)$Complete)$dimnames[[1]]
   }
 
+  resultsAAll <- lm(train1_xy_set[signif_all])
   
+    
   a=a+1
 }
 
