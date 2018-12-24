@@ -311,51 +311,57 @@ for (i in 1:divisions)
   #splitB.var <- strsplit(tail(row.names(data.frame(resultsBAll$model$coefficients)),-1), " ")
 
   #max(subsetA$n,subsetB$n)
-  
-  #merge quickly (not merge function)  
-  
-  #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
-  #if(a==1){
-    #print("yes")
-    factor_test_list <- c(factor_test_list,splitA.var)
-    #print(factor_test_list)
-    #} else {
-      #factor_test_list <- intersect(splitA.var,factor_test_list)
-      #print(factor_test_list)
-      #print("no")
-    #}
-  
-  #factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
-  
-  #print(intersect(splitA.var,splitB.var))
-  
-  #names.reads <- c("
-  
-  #splitA.var
-  #splitB.var
-  
-  #print(intersect(splitA.var,splitB.var))
-  
-  checkVIFs <- c('yFYield_CSUSHPINSA',tail(row.names(data.frame(resultsAAll$model$coefficients)),-1))
+
+  #https://stackoverflow.com/questions/28885160/vifs-returning-aliased-coefficients-in-r
+  checkColLins <- c('yFYield_CSUSHPINSA',tail(row.names(data.frame(resultsAAll$model$coefficients)),-1))
     
   signif_all <- c()
   
-  lmMod <- lm(train1_xy_set[checkVIFs])
+  lmMod <- lm(train1_xy_set[checkColLins])
   selectedMod <- lmMod
   ld.vars <- attributes(alias(selectedMod)$Complete)$dimnames[[1]]
   
-  #VIF remover
+  #collinearity check
   while(any(ld.vars > 1)){
-    signif_all <- checkVIFs[!checkVIFs %in% c(ld.vars)]  # remove 
+    signif_all <- checkColLins[!checkColLins %in% c(ld.vars)]  # remove 
     myForm <- lm(train1_xy_set[signif_all])
     selectedMod <- lm(myForm)  # re-build model with new formula
     #all_vifs <- car::vif(selectedMod)
     ld.vars <- attributes(alias(selectedMod)$Complete)$dimnames[[1]]
   }
 
-  resultsAAll <- lm(train1_xy_set[signif_all])
+  #VIF check
+  #merge quickly (not merge function)  
   
-    
+  oldset <- signif_all
+  
+  lmMod <- lm(train1_xy_set[oldset])
+  selectedMod <- lmMod
+  all_vifs <- round(car::vif(selectedMod),0)
+  
+  while(any(ld.vars > 10)){
+    var_with_max_vif <- names(which(all_vifs == max(all_vifs)))
+    signif_all <- signif_all[!signif_all %in% c(names(all_vifs))]  # remove 
+    myForm <- lm(train1_xy_set[signif_all])
+    selectedMod <- lm(myForm)  # re-build model with new formula
+    #all_vifs <- car::vif(selectedMod)
+    all_vifs <- round(car::vif(selectedMod),0)
+    #print(signif_all)
+  }
+  
+  
+  
+  #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
+  #if(a==1){
+  #print("yes")
+  factor_test_list <- c(factor_test_list,signif_all)
+  #print(factor_test_list)
+  #} else {
+  #factor_test_list <- intersect(splitA.var,factor_test_list)
+  #print(factor_test_list)
+  #print("no")
+  #}
+  
   a=a+1
 }
 
