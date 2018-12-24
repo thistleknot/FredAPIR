@@ -17,6 +17,8 @@ library(ggplot2)
 #mallows
 library(locfit)
 
+library(leaps)
+
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
 PRESS <- function(linear.model) {
@@ -34,9 +36,11 @@ pre_MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 #fedvar was causing too much chaos with trainingDatasets having all 0's
 dropColumns = colSums(pre_MyData == 0, na.rm = TRUE)
 
+
 filtered <- c()
 for (i in 1:nrow(data.frame(dropColumns)))
 {
+  
   #parsedList2 <- parsedList[!parsedList %in% c(filtered)]  
   
   #if(i>(floor*nrow(test1_z)))
@@ -109,29 +113,60 @@ nrow(y)
 #vld_size <- floor(1.0 * nrow(MyData))
 #https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
 
-
 #important that # of rows exceeds # of columns fed in
 #else doing expensive error try blocks due to aliased coefficients
-train_size = .80
+train_size = .90
 #test_size = 1- train_size
-
-preset_rng <- sample(nrow(MyData), replace=F)
-#static training set
-
-#training/validation sets (split into rebootstrapped 1:1 distinct partitions)
-#preset1 <- preset_rng[1:floor(nrow(MyData)*train_size)]
-preset1 <- preset_rng[1:nrow(MyData)*train_size]
-#static testing set
-#preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
-preset2 <- setdiff(1:nrow(MyData), preset1) # setdiff gives the set difference
 
 #View(colnames(MyData))
 vars <- c()
 #data is too big for exhaustive search
 factor_test_list<-c()
-set.seed(256)
-for (i in 1:10)
+
+a=1
+set.seed(255)
+preset_rng <- sample(nrow(MyData), replace=F)
+divisions=10
+for (i in 1:divisions)
 {
+  i=1
+  
+  final_end=length(preset_rng)
+  unitsize=floor(final_end*.1)
+  
+  initial_start=1+((i-1)*unitsize)
+  initial_start
+
+  distance=final_end-initial_start
+  
+  #90%
+  part_size=floor(final_end*.9)
+  
+  difference=(distance-partsize)
+  
+  if (distance>=part_size)
+  {
+    end_position=initial_start+part_size
+    preset1=(c(preset_rng[initial_start:end_position]))
+  }
+  
+  if (distance<part_size)
+  {
+    end_position=final_end
+    left=part_size-(end_position-initial_start)
+    left
+    preset1=(c(preset_rng[initial_start:end_position],preset_rng[1:left]))
+  }
+  
+  #static training set
+  
+  #training/validation sets (split into rebootstrapped 1:1 distinct partitions)
+  #preset1 <- preset_rng[1:floor(nrow(MyData)*train_size)]
+  preset1 <- preset_rng[1:nrow(MyData)*train_size]
+  #static testing set
+  #preset2 <- preset_rng[ceiling(nrow(MyData)*train_size):nrow(MyData)]
+  preset2 <- setdiff(1:nrow(MyData), preset1) # setdiff gives the set difference
+  
   print(i)
   #lower
   
@@ -145,7 +180,7 @@ for (i in 1:10)
   #rule of thumb is n for factor analysis should be 5(k*2)
   #with /2 mine is 59, which is good for up to 11 factors (12 is 60), it would be ideal to have 80 since I'm starting with 14 factors, but oh well, since I'm aggregating the lists, I'm assuraedly going to lose thosee upper combitorial lists since those upper lists will be overfitted to the small sample sizes, which means wasted processing [that will be trimmed] (vs actually saving higher level models) and smaller pruned lists will only be stored and when the filter goes into affect, the affect will be much harsher.
   training1 <- set1[1:floor(length(set1)/2)]
-  training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
+  #training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
   
   #http://r-statistics.co/Linear-Regression.html
   #used to build models on new ranodmized data and then tested against holdout test data (to include cross validation)
@@ -153,17 +188,17 @@ for (i in 1:10)
   #provides an index
   
   training1Data <- c()
-  training2Data <- c()
+  #training2Data <- c()
 
   #new plan is to create two randomized partitions that will have complete dataset algo's done on them.
   training1Data <- MyData[training1, ]  # model training data
-  training2Data <- MyData[training2, ]  # model training data
+  #training2Data <- MyData[training2, ]  # model training data
   
   train1_xy_set <- c()
-  train2_xy_set <- c()
+  #train2_xy_set <- c()
   
   train1_xy_set <- training1Data[c(yField,xList)]
-  train2_xy_set <- training2Data[c(yField,xList)]
+  #train2_xy_set <- training2Data[c(yField,xList)]
   
   names <- c()
   
@@ -179,7 +214,7 @@ for (i in 1:10)
   #training1Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train1_xy_set)
   training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set)
   #training2Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train2_xy_set)
-  training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set)
+  #training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set)
   
   #obj1 = step(training1Model.null, scope=list(lower=training1Model.null, upper=training1Model), direction='forward')
   #obj2 = step(training2Model.null, scope=list(lower=training1Model.null, upper=training2Model), direction='forward')
@@ -192,7 +227,7 @@ for (i in 1:10)
   #anova(training1Model,training2Model)
   
   summary(training1Model)
-  summary(training2Model)
+  #summary(training2Model)
   
   #****
   #careful, takes a long time
@@ -234,9 +269,8 @@ for (i in 1:10)
   print(aflag)
   if(aflag==0)
   {
-    resultsAAll <- ols_step_forward_p(training1Model, penter=.05)
+    resultsAAll <- ols_step_backward_p(training1Model, penter=.05)
   }
-  
   
   resultsBAll <- c()
   bflag = 0
@@ -259,26 +293,38 @@ for (i in 1:10)
   print(bflag)
   if(bflag==0)
   {
-    resultsBAll <- ols_step_forward_p(training2Model, penter=.05)
+    #resultsBAll <- ols_step_forward_p(training2Model, penter=.05)
   }
   
   #resultsBAll <- ols_step_all_possible(training2Model, p=.05)
   #careful, takes a long time
   #****
   
+  #remove intercept
   tail(row.names(data.frame(resultsBAll$model$coefficients)),-1)
   
   #grab names of vars
   splitA.var <- strsplit(tail(row.names(data.frame(resultsAAll$model$coefficients)),-1), " ")
-  splitB.var <- strsplit(tail(row.names(data.frame(resultsBAll$model$coefficients)),-1), " ")
+  #splitB.var <- strsplit(tail(row.names(data.frame(resultsBAll$model$coefficients)),-1), " ")
 
   #max(subsetA$n,subsetB$n)
   
   #merge quickly (not merge function)  
-  factor_test_list <- c()
-  factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
+ 
+  #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
+  #if(a==1){
+    #print("yes")
+    factor_test_list <- c(factor_test_list,splitA.var)
+    #print(factor_test_list)
+    #} else {
+      #factor_test_list <- intersect(splitA.var,factor_test_list)
+      #print(factor_test_list)
+      #print("no")
+    #}
   
-  print(intersect(splitA.var,splitB.var))
+  #factor_test_list <- c(factor_test_list,intersect(splitA.var,splitB.var))
+  
+  #print(intersect(splitA.var,splitB.var))
   
   #names.reads <- c("
   
@@ -286,15 +332,24 @@ for (i in 1:10)
   #splitB.var
   
   #print(intersect(splitA.var,splitB.var))
+  
+  a=a+1
 }
 
-print(factor_test_list)
+#results in just 5 if I select intersects, selects 43 if I keep all
+
+View(unique(factor_test_list))
+#c(yFYield_CSUSHPINSA,factor_test_list)
 
 xyList <- c()
 gnames <- c()
 gnames <- c('yFYield_CSUSHPINSA')
 
-gnames <- c(factor_test_list)
+gnames <- c(unique(factor_test_list))
+
+subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train,], nvmax=16)
+subsets
+
 
 #reshuffle sets
 set1 <- preset1[sample(length(preset1), replace=F)]
