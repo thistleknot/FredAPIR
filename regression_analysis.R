@@ -336,9 +336,6 @@ for (i in 1:divisions)
   
   #print(intersect(splitA.var,splitB.var))
   
-  
-  a=a+1
-  
   signif_all <- c()
   
   lmMod <- lm(train1_xy_set[checkVIFs])
@@ -355,13 +352,7 @@ for (i in 1:divisions)
   }
 
   
-}
-
-summary(selectedMod)
-  
-  
-  
-  
+  a=a+1
 }
 
 #results in just 5 if I select intersects, selects 43 if I keep all
