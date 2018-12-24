@@ -13,6 +13,9 @@ library(caret)
 library(rpart.plot)
 require(rpart)
 require(party)
+#library(cluster)
+#library(fpc)
+library(dbscan)
 
 pre_MyData <- read.csv(file="prepped.csv", header=TRUE, sep=",")
 
@@ -95,7 +98,6 @@ dat <- cbind(y,x)
 BL_yField <- 'BL_yFYield_CSUSHPINSA'
 y2 <- MyData[BL_yField]
 dat2 <- cbind(y2,x)
-
 
 #View(colnames(MyData))
 vars <- c()
@@ -188,6 +190,7 @@ obj2 = step(obj.full, scope=list(lower=obj.null, upper=obj.full), direction='bac
 ### stepwise selection ###
 obj3 = step(obj.null, scope=list(lower=obj.null, upper=obj.full), direction='both') # start with full and end with null
 
+expand.grid(colnames(MyData))
 summary(obj1) ## ending up with a model with 13 variables
 length(obj1$coefficients)
 summary(obj2) # end up with a model with 15 variables
@@ -319,17 +322,32 @@ classification_accuracy = correct_predictions / total_predictions
 correct_predictions = sum(yhat.test == dat2$BL_yFYield_CSUSHPINSA[id.test])
 error_rate = (1 - (correct_predictions / total_predictions))
 
-par(mfrow = c(1, 1))
 #https://hopstat.wordpress.com/2014/12/19/a-small-introduction-to-the-rocr-package/
 #https://stackoverflow.com/questions/40783331/rocr-error-format-of-predictions-is-invalid
 #pred <- prediction(ROCR.simple$predictions,ROCR.simple$labels)
 #pred/prob, actual
 pred <- prediction(as.numeric(yhat),as.numeric(dat2$BL_yFYield_CSUSHPINSA[id.test]))
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+
+#https://machinelearningmastery.com/confusion-matrix-machine-learning/
+#results <- confusionMatrix(data=predicted, reference=expected)
+
+#https://stackoverflow.com/questions/30002013/error-in-confusion-matrix-the-data-and-reference-factors-must-have-the-same-nu
+cm_bestLinear = confusionMatrix(
+  factor(yhat.test, levels = 0:1),
+  factor(dat2$BL_yFYield_CSUSHPINSA[id.test], levels = 0:1)
+)
+
+#gain chart
+#https://stackoverflow.com/questions/38268031/creating-a-lift-chart-in-r
+gain <- performance(pred, "tpr", "rpp")
+
+par(mfrow = c(2, 2))
+plot(gain, main = "Gain Chart")
 plot(roc.perf)
 abline(a=0, b= 1)
-
-confusionMatrix(yhat,dat2$BL_yFYield_CSUSHPINSA[id.test])
+cm_bestLinear
+#lift(yhat.test~dat2$BL_yFYield_CSUSHPINSA[id.test])
 
 ## 2. kNN prediction ##
 
@@ -347,6 +365,11 @@ knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
 #knn.reg.bestK(x_training, x_test, y_training, y_test)
 knn_model <- knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
 knn_model
+
+#kNNdistplot(dat[id.train, ], k=knn_model$k.opt)
+
+#cl <- dbscan(dat[id.train, ], eps = .5, minPts = knn_model$k.opt)
+#pairs(dat[id.train, ], col = cl$cluster+1L)
 
 ##0.01694881
 
@@ -413,6 +436,9 @@ knn.bestK = function(train, test, y.train, y.test, k.max = 20) {
 
 knn_bestK_model <- knn.bestK(dat[id.train, ], dat[id.test, ], dat2$BL_yFYield_CSUSHPINSA[id.train], dat2$BL_yFYield_CSUSHPINSA[id.test])
 knn_bestK_model
+
+
+#plotcluster(dat, clus$cluster)
 
 #k=5
 ##0.33
