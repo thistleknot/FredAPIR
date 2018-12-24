@@ -96,25 +96,6 @@ nrow(x)
 nrow(y)
 #subset by sample
 
-#https://stackoverflow.com/questions/17200114/how-to-split-data-into-training-testing-sets-using-sample-function/39403173
-## 75% of the sample size
-#single split
-## set the seed to make your partition reproducible
-
-#used for exhaustive lists (oversamples)
-#possible to define two splits?
-
-#alternative is 75% bootstraps of resampled data, having it split into 1/3's makes the data diverse for 6 years
-#limit training size to 1/3? (6 years)
-
-#ideal would be to shift start position
-
-#smp_size <-  floor(train_size * nrow(MyData))
-#test_size <- nrow(MyData)-smp_size
-#vld_size <- floor(1.0 * nrow(MyData))
-#https://stackoverflow.com/questions/14864275/randomize-w-no-repeats-using-r
-
-#important that # of rows exceeds # of columns fed in
 #else doing expensive error try blocks due to aliased coefficients
 train_size = .90
 #test_size = 1- train_size
@@ -209,46 +190,21 @@ for (i in 1:divisions)
   #trainingModel <- lm(yFYield_CSUSHPINSA ~ Q1 + Q3 + Q4 + xYield_CASTHPI + xYield_CPALTT01USQ657N + xYield_GS10 + xYield_MSPNHSUS + xYield_MVLOAS + xYield_NYXRSA + xYield_POPTHM + xYield_SDXRSA + xYield_TB3MS + xYield_UMCSENT + xYield_USSLIND, data = train_xy_set)
   vars <- xList
   names <- c(names, vars)
-  
-  #doesn't throw an error here, but when I try to pass this model into ols_step_all_possible, it throws an error
-  #.null used with stepwise
-  #training1Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train1_xy_set)
   training1Model <- lm(yFYield_CSUSHPINSA~.,train1_xy_set)
-  #training2Model.null = ~lm (yFYield_CSUSHPINSA ~ 1, data = train2_xy_set)
-  #training2Model <- lm(yFYield_CSUSHPINSA~.,train2_xy_set)
-  
-  #obj1 = step(training1Model.null, scope=list(lower=training1Model.null, upper=training1Model), direction='forward')
-  #obj2 = step(training2Model.null, scope=list(lower=training1Model.null, upper=training2Model), direction='forward')
-  
   #olsrr::ols_plot_resid_stud_fit(training1Model)
-  #layout(matrix(c(1,2,3,4),2,2))
-  #olsrr::ols_plot_resid_stud_fit(training2Model)
-  #layout(matrix(c(1,2,3,4),2,2))
-  
   #anova(training1Model,training2Model)
+  #linearHypothesis(training1Model)
+  #alias
   
   summary(training1Model)
   #summary(training2Model)
   
-  #****
-  #careful, takes a long time
-  #resultsAAll <- ols_step_backward_p(training1Model, p=.05)
-  #resultsBAll <- ols_step_backward_p(training2Model, p=.05)
-  
-  #ols_step_forward_p()
-  
-  #ols_step_both_()
-  
-  #resultsAAll <- ols_step_all_possible(training1Model, p=.05)
   #https://stackoverflow.com/questions/27128455/r-try-catch-block
   alias(training1Model)
   
   #deal with "there are aliased coefficients in the model" from ols_step funtion
   #https://stats.stackexchange.com/questions/112442/what-are-aliased-coefficients
-  #linearHypothesis
-  #library(car)
-  #linearHypothesis(training1Model)
-  #linearHypothesis(training2Model)
+
   resultsAAll <- c()
   aflag = 0
   result = tryCatch({
@@ -270,9 +226,7 @@ for (i in 1:divisions)
   print(aflag)
   if(aflag==0)
   {
-    
     resultsAAll <- ols_step_backward_p(training1Model, penter=.05)
-    
   }
   
   resultsBAll <- c()
@@ -349,8 +303,6 @@ for (i in 1:divisions)
     #print(signif_all)
   }
   
-  
-  
   #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
   #if(a==1){
   #print("yes")
@@ -381,7 +333,7 @@ xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
 
 subset <- dat[id.train,][xyList]
 
-subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=5, nvmax=16, method=c("exhaustive"))
+subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
 
 
 plot(subsets)
