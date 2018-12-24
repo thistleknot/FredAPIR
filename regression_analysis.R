@@ -18,6 +18,7 @@ library(ggplot2)
 library(locfit)
 
 library(leaps)
+library(car)
 
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
@@ -269,7 +270,9 @@ for (i in 1:divisions)
   print(aflag)
   if(aflag==0)
   {
+    
     resultsAAll <- ols_step_backward_p(training1Model, penter=.05)
+    
   }
   
   resultsBAll <- c()
@@ -310,7 +313,7 @@ for (i in 1:divisions)
   #max(subsetA$n,subsetB$n)
   
   #merge quickly (not merge function)  
- 
+  
   #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
   #if(a==1){
     #print("yes")
@@ -333,7 +336,32 @@ for (i in 1:divisions)
   
   #print(intersect(splitA.var,splitB.var))
   
+  
   a=a+1
+  
+  signif_all <- c()
+  
+  lmMod <- lm(train1_xy_set[checkVIFs])
+  selectedMod <- lmMod
+  ld.vars <- attributes(alias(selectedMod)$Complete)$dimnames[[1]]
+  
+  #VIF remover
+  while(any(ld.vars > 1)){
+    signif_all <- checkVIFs[!checkVIFs %in% c(ld.vars)]  # remove 
+    myForm <- lm(train1_xy_set[signif_all])
+    selectedMod <- lm(myForm)  # re-build model with new formula
+    #all_vifs <- car::vif(selectedMod)
+    ld.vars <- attributes(alias(selectedMod)$Complete)$dimnames[[1]]
+  }
+
+  
+}
+
+summary(selectedMod)
+  
+  
+  
+  
 }
 
 #results in just 5 if I select intersects, selects 43 if I keep all
@@ -341,14 +369,21 @@ for (i in 1:divisions)
 View(unique(factor_test_list))
 #c(yFYield_CSUSHPINSA,factor_test_list)
 
+subset <- c()
 xyList <- c()
 gnames <- c()
 gnames <- c('yFYield_CSUSHPINSA')
 
-gnames <- c(unique(factor_test_list))
+gnames <- c(gnames,unique(factor_test_list))
 
-subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = dat[id.train,], nvmax=16)
-subsets
+xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
+
+subset <- dat[id.train,][xyList]
+
+subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=5, nvmax=16, method=c("exhaustive"))
+
+
+plot(subsets)
 
 
 #reshuffle sets
