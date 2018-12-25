@@ -327,6 +327,32 @@ for (i in 1:divisions)
 View(unique(factor_test_list))
 #27 when I fixed the /2 bug (when I continue to add)
 
+#reshuffle sets
+set1 <- preset1[sample(length(preset1), replace=F)]
+#set2 <- preset1[sample(length(preset1), replace=F)]
+#training1 <- set1[1:floor(length(set1))]
+#training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
+
+#same xylist to two different training partitions
+xyList=c('yFYield_CSUSHPINSA',c((unique(factor_test_list))))
+
+#t1 and t2 needed for ols_step_all_possible
+#this juncture is important, even though prior i'm testing the whole dataset with cv passes... 
+#here I really am just getting a list.  I just don't want the expense of doing the cv, 
+#which I WOULD do if it wasn't so expensive
+
+#if doing CV
+#t1 <- train1_xy_set[set1,xyList]
+t1 <- train1_xy_set[xyList]
+#t2 <- train2_xy_set[c(yField,xyList)]
+training1Model <- lm(t1)
+#training2Model <- lm(yFYield_CSUSHPINSA~.,t2)
+
+#resultsAll1 <- c()
+#resultsAll2 <- c()
+resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
+#resultsAll2 <- ols_step_all_possible(training1Model, p=.05)
+
 #this is for subsets
 train_size = .90
 #test_size = 1- train_size
@@ -390,26 +416,6 @@ for (i in 1:divisions)
   subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
   plot(subsets)
 }
-
-#reshuffle sets
-set1 <- preset1[sample(length(preset1), replace=F)]
-set2 <- preset1[sample(length(preset1), replace=F)]
-training1 <- set1[1:floor(length(set1)/2)]
-training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
-
-#same xylist to two different training partitions
-xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
-
-#t1 and t2 needed for ols_step_all_possible
-t1 <- train1_xy_set[c(yField,xyList)]
-t2 <- train2_xy_set[c(yField,xyList)]
-training1Model <- lm(yFYield_CSUSHPINSA~.,t1)
-training2Model <- lm(yFYield_CSUSHPINSA~.,t2)
-
-#resultsAll1 <- c()
-#resultsAll2 <- c()
-resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
-resultsAll2 <- ols_step_all_possible(training1Model, p=.05)
 
 #used for comprehensive lists
 {
