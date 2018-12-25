@@ -108,6 +108,13 @@ factor_test_list<-c()
 a=1
 set.seed(255)
 preset_rng <- sample(nrow(MyData), replace=F)
+
+#contemplating counting factors as they appear in coefficients of the 
+#resultant linear model and tabulating the end result and deriving my 
+#own frequency chart and pick factors that appears more than the median/median
+
+colnames(MyData)
+
 divisions=10
 for (i in 1:divisions)
 {
@@ -161,7 +168,7 @@ for (i in 1:divisions)
   #goal is to find combinations of 6-7 that work
   #rule of thumb is n for factor analysis should be 5(k*2)
   #with /2 mine is 59, which is good for up to 11 factors (12 is 60), it would be ideal to have 80 since I'm starting with 14 factors, but oh well, since I'm aggregating the lists, I'm assuraedly going to lose thosee upper combitorial lists since those upper lists will be overfitted to the small sample sizes, which means wasted processing [that will be trimmed] (vs actually saving higher level models) and smaller pruned lists will only be stored and when the filter goes into affect, the affect will be much harsher.
-  training1 <- set1[1:floor(length(set1)/2)]
+  training1 <- set1[1:floor(length(set1))]
   #training2 <- set1[(ceiling(length(set1)/2)+1):length(set1)]
   
   #http://r-statistics.co/Linear-Regression.html
@@ -317,27 +324,71 @@ for (i in 1:divisions)
   a=a+1
 }
 
-#results in just 5 if I select intersects, selects 43 if I keep all
-
 View(unique(factor_test_list))
-#c(yFYield_CSUSHPINSA,factor_test_list)
 
-subset <- c()
-xyList <- c()
-gnames <- c()
-gnames <- c('yFYield_CSUSHPINSA')
+#this is for subsets
+train_size = .90
+#test_size = 1- train_size
 
-gnames <- c(gnames,unique(factor_test_list))
+#View(colnames(MyData))
+vars <- c()
+#data is too big for exhaustive search
+factor_test_list<-c()
 
-xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
-
-subset <- dat[id.train,][xyList]
-
-subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
-
-
-plot(subsets)
-
+a=1
+set.seed(255)
+preset_rng <- sample(nrow(MyData), replace=F)
+divisions=10
+for (i in 1:divisions)
+{
+  i=1
+  
+  final_end=length(preset_rng)
+  unitsize=floor(final_end*.1)
+  
+  initial_start=1+((i-1)*unitsize)
+  initial_start
+  
+  distance=final_end-initial_start
+  
+  #90%
+  part_size=floor(final_end*.9)
+  
+  difference=(distance-partsize)
+  
+  if (distance>=part_size)
+  {
+    end_position=initial_start+part_size
+    preset1=(c(preset_rng[initial_start:end_position]))
+  }
+  
+  if (distance<part_size)
+  {
+    end_position=final_end
+    left=part_size-(end_position-initial_start)
+    left
+    preset1=(c(preset_rng[initial_start:end_position],preset_rng[1:left]))
+  }
+  #results in just 5 if I select intersects, selects 43 if I keep all
+  
+  #c(yFYield_CSUSHPINSA,factor_test_list)
+  
+  set1 <- preset1[sample(length(preset1), replace=F)]
+  
+  subset <- c()
+  xyList <- c()
+  gnames <- c()
+  gnames <- c('yFYield_CSUSHPINSA')
+  
+  gnames <- c(gnames,unique(factor_test_list))
+  
+  xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
+  
+  subset <- dat[set1,][xyList]
+  
+  subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
+  plot(subsets)
+}
 
 #reshuffle sets
 set1 <- preset1[sample(length(preset1), replace=F)]
