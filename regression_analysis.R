@@ -2,6 +2,10 @@
 library(caret)
 library(DAAG)
 
+library(ISLR)
+library(knitr)
+library(printr)
+
 #filter
 library(dplyr)
 
@@ -19,6 +23,15 @@ library(locfit)
 
 library(leaps)
 library(car)
+library(ggvis)
+
+#https://lagunita.stanford.edu/c4x/HumanitiesSciences/StatLearning/asset/ch6.html
+predict.regsubsets = function(object, newdata, id, ...) {
+  form = as.formula(object$call[[2]])
+  mat = model.matrix(form, newdata)
+  coefi = coef(object, id = id)
+  mat[, names(coefi)] %*% coefi
+}
 
 #https://onlinecourses.science.psu.edu/stat501/node/334/
 #RSS
@@ -131,7 +144,7 @@ for (i in 1:divisions)
   #90%
   part_size=floor(final_end*.9)
   
-  difference=(distance-partsize)
+  difference=(distance-part_size)
   
   if (distance>=part_size)
   {
@@ -343,7 +356,7 @@ xyList=c('yFYield_CSUSHPINSA',c((unique(factor_test_list))))
 
 #if doing CV
 #t1 <- train1_xy_set[set1,xyList]
-t1 <- train1_xy_set[xyList]
+t1 <- MyData[xyList]
 #t2 <- train2_xy_set[c(yField,xyList)]
 training1Model <- lm(t1)
 #training2Model <- lm(yFYield_CSUSHPINSA~.,t2)
@@ -351,7 +364,13 @@ training1Model <- lm(t1)
 #resultsAll1 <- c()
 #resultsAll2 <- c()
 #look into leaps for iterarting this.
-resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
+#x= colnames(t1[!colnames(t1) %in% c('yFYield_CSUSHPINSA')])
+x= t1[!colnames(t1) %in% c('yFYield_CSUSHPINSA')]
+y= t1['yFYield_CSUSHPINSA']
+
+#length(x)
+#resultsLeapsAll <- leaps(x, y)
+#resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
 #resultsAll2 <- ols_step_all_possible(training1Model, p=.05)
 
 #this is for subsets
@@ -361,62 +380,38 @@ train_size = .90
 #View(colnames(MyData))
 vars <- c()
 #data is too big for exhaustive search
-factor_test_list<-c()
+#factor_test_list<-c()
 
-a=1
-set.seed(255)
-preset_rng <- sample(nrow(MyData), replace=F)
-divisions=10
-for (i in 1:divisions)
-{
-  i=1
-  
-  final_end=length(preset_rng)
-  unitsize=floor(final_end*.1)
-  
-  initial_start=1+((i-1)*unitsize)
-  initial_start
-  
-  distance=final_end-initial_start
-  
-  #90%
-  part_size=floor(final_end*.9)
-  
-  difference=(distance-partsize)
-  
-  if (distance>=part_size)
-  {
-    end_position=initial_start+part_size
-    preset1=(c(preset_rng[initial_start:end_position]))
+#subset <- dat[set1,][xyList]
+subset <- MyData[xyList]
+
+#weird method to bootstrap.  Assigns each value to a k-fold
+folds = sample(1:divisions,nrow(subset),replace=TRUE)
+
+#https://rpubs.com/davoodastaraky/subset
+cv.errors=matrix(NA,divisions,(length(factor_test_list)-1), dimnames=list(NULL, paste(1:(length(factor_test_list)-1))))
+
+for(j in 1:divisions){
+  best.fit = regsubsets(yFYield_CSUSHPINSA ~., data=subset[folds != j,], nvmax = length(factor_test_list)-1)
+  for (i in 1:(length(factor_test_list)-1)){
+    pred = predict.regsubsets(best.fit, subset[folds == j, ], id = i)  
+    #MSE
+    cv.errors[j, i] = mean((subset$yFYield_CSUSHPINSA[folds == j] - pred)^2)
   }
-  
-  if (distance<part_size)
-  {
-    end_position=final_end
-    left=part_size-(end_position-initial_start)
-    left
-    preset1=(c(preset_rng[initial_start:end_position],preset_rng[1:left]))
-  }
-  #results in just 5 if I select intersects, selects 43 if I keep all
-  
-  #c(yFYield_CSUSHPINSA,factor_test_list)
-  
-  set1 <- preset1[sample(length(preset1), replace=F)]
-  
-  subset <- c()
-  xyList <- c()
-  gnames <- c()
-  gnames <- c('yFYield_CSUSHPINSA')
-  
-  gnames <- c(gnames,unique(factor_test_list))
-  
-  xyList = colnames(MyData[ ,which((names(MyData) %in% gnames)==TRUE)])
-  
-  subset <- dat[set1,][xyList]
-  
-  subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
-  plot(subsets)
+
 }
+#  colnames(x)
+
+which.min(cv.errors)  
+#View(cv.errors)
+
+#https://rpubs.com/davoodastaraky/subset
+mean.cv.errors = apply(cv.errors ,2,mean)
+plot(mean.cv.errors, pch = length(factor_test_list), type = "b")
+
+#subsets = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=16, method=c("exhaustive"))
+#plot(subsets)
+
 
 #used for comprehensive lists
 {
