@@ -311,20 +311,21 @@ for (i in 1:divisions)
   }
   
   #https://stackoverflow.com/questions/45960255/r-error-unexpected-else-in-else
-  #if(a==1){
-  #print("yes")
+  if(a==1){
+  print("yes")
   factor_test_list <- c(factor_test_list,signif_all)
-  #print(factor_test_list)
-  #} else {
-  #factor_test_list <- intersect(splitA.var,factor_test_list)
-  #print(factor_test_list)
-  #print("no")
-  #}
+  print(factor_test_list)
+  } else {
+  factor_test_list <- intersect(splitA.var,factor_test_list)
+  print(factor_test_list)
+  print("no")
+  }
   
   a=a+1
 }
 
 View(unique(factor_test_list))
+#27 when I fixed the /2 bug (when I continue to add)
 
 #this is for subsets
 train_size = .90
