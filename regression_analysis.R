@@ -350,6 +350,7 @@ training1Model <- lm(t1)
 
 #resultsAll1 <- c()
 #resultsAll2 <- c()
+#look into leaps for iterarting this.
 resultsAll1 <- ols_step_all_possible(training1Model, p=.05)
 #resultsAll2 <- ols_step_all_possible(training1Model, p=.05)
 
