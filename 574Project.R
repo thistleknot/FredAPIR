@@ -138,6 +138,8 @@ set.seed(256)
   #fit <- lm(training1Model, data=test1_xy_set)
   #summary(fit)
 
+  
+  
 ## below is just an example with manually selected variable: age, fuel type and weight; just for illustration purpose
 #obj = lm(Price ~ Age_08_04 + factor(Fuel_Type) + Weight, data = dat[id.train, ])
 # dat[id.train, ] takes rows of id.train
@@ -351,9 +353,7 @@ cm_bestLinear
 
 ## 2. kNN prediction ##
 
-knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = 3)
-
-knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
+knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=10) {
   vec.rmse = rep(NA, kmax)
   for (k in 1:kmax) {
     yhat.test = knn.reg(Xtrain, Xtest, ytrain, k)$pred
@@ -364,7 +364,11 @@ knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
 
 #knn.reg.bestK(x_training, x_test, y_training, y_test)
 knn_model <- knn.reg.bestK(dat[id.train, ], dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], dat$yFYield_CSUSHPINSA[id.test])
-knn_model
+
+knn_model$k.opt
+#predictions
+knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = knn_model$k.opt)
+#knn_model
 
 #kNNdistplot(dat[id.train, ], k=knn_model$k.opt)
 

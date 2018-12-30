@@ -24,6 +24,8 @@ library(locfit)
 library(leaps)
 library(car)
 library(ggvis)
+library(mclust)
+
 
 #https://lagunita.stanford.edu/c4x/HumanitiesSciences/StatLearning/asset/ch6.html
 predict.regsubsets = function(object, newdata, id, ...) {
@@ -33,9 +35,10 @@ predict.regsubsets = function(object, newdata, id, ...) {
   mat[, names(coefi)] %*% coefi
 }
 
+#Thumb rule is k = n^(1/2)
 knn.reg.bestK = function(Xtrain, Xtest, ytrain, ytest, kmax=20) {
   vec.rmse = rep(NA, kmax)
-  for (k in 1:kmax) {
+  for (k in seq(1, kmax, by = 2)) {
     yhat.test = knn.reg(Xtrain, Xtest, ytrain, k)$pred
     vec.rmse[k] = rmse(yhat.test, ytest)
   }
@@ -462,25 +465,32 @@ for (i in 1:divisions)
   
     ## Training set
     best.fit <- regsubsets(yFYield_CSUSHPINSA~.,data=MyData[xyList],nvmax=k)
+    #best.fit$
+    
     #up to k factors
     for(j in 1:k){
-      #predict on test set
+      #don't care about what type of model, wish to map the average error of the best model given a set # of factors
       pred <- predict.regsubsets(best.fit,MyData[preset2,xyList],id=j)
-      cv.errors[i,j] <- mean((MyData[preset2,colnames(y)] - pred)^2)
+      #RMSE
+      cv.errors[i,j] <- sqrt(mean((MyData[preset2,colnames(y)] - pred)^2))
     }
   
+  print()
   mean.cv.errors <- apply(cv.errors,2,mean)
+  median.cv.errors <- apply(cv.errors,2,median)
   
  #View(MyData[preset1,xyList]) 
 }
 
-which.min(mean.cv.errors)
+which.min(median.cv.errors)
 
-layout(matrix(c(1,1,1,1),1,1))
+layout(matrix(c(1,2,3,4),2,2))
 plot(mean.cv.errors, type="b")
+plot(median.cv.errors, type="b")
 
 #minimum size within 1 standard error of minimum error (across a model using all 26 factors)
-bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))+2
+bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))
+#bestSize = min(which(mean.cv.errors <= (min(median.cv.errors)+sd(median.cv.errors))))
 
 bestsubset = regsubsets(yFYield_CSUSHPINSA ~ ., data = MyData[xyList], nbest=1, nvmax=bestSize, method=c("exhaustive"))
 
@@ -490,16 +500,23 @@ plot(bestsubset, scale = "adjr2", main = "Adjusted R^2")
 
 finish = coef(bestsubset, bestSize)
 
-finalSet <- c('yFYield_CSUSHPINSA',tail(row.names(data.frame(finish)),-1))
+finishedModel <- lm(MyData[finalSet])
+summary(finishedModel)
 
-finalSet <- c('yFYield_CSUSHPINSA',xList)
+#max and min yield for housing is 5.4%
+max(MyData$yFYield_CSUSHPINSA)
+min(MyData$yFYield_CSUSHPINSA)
 
-#don't include y
-k=length(finalSet)-1
+reducedXList <- tail(row.names(data.frame(finish)),-1)
+finalSet <- c('yFYield_CSUSHPINSA',reducedXList)
+
+#kfinalSet <- c('yFYield_CSUSHPINSA',xList)
 
 #goal of knn is to build it against it's own xlist
 
 #however, because  want to map my above regression model to knn using kdistplot, I need to actually use the variables above...
+#book recommends odd up to 20, so 19
+k=19
 
 cv.errors<-matrix(NA,divisions,k, dimnames=list(NULL, paste(1:k)))
 
@@ -534,9 +551,9 @@ for(i in 1:divisions){
   
   preset2 = preset_rng[!preset_rng %in% c(preset1)]
   
-  knn_model <- knn.reg.bestK(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, MyData[preset2,finalSet]$yFYield_CSUSHPINSA)
+  knn_model <- knn.reg.bestK(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, MyData[preset2,finalSet]$yFYield_CSUSHPINSA,k)
   #up to k factors
-  for(j in 1:k){
+  for(j in seq(1, k, by = 2)){
     #predictions
     yhat = knn.reg(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, j)
     #yhat.test = rep(0, length(preset2))
@@ -544,19 +561,46 @@ for(i in 1:divisions){
     #yhat.test[yhat$pred < 0] = 0
     print(yhat)
     
-    cv.errors[i,j] <- mean((MyData[preset2,'yFYield_CSUSHPINSA'] - yhat$pred)^2)
+    #RMSE
+    cv.errors[i,j] <- sqrt(mean((MyData[preset2,'yFYield_CSUSHPINSA'] - yhat$pred)^2))
+    #cv.errors[i,j] <- knn_model$k.opt
+    #cv.errors[i,j] <- knn_model$rmse.min
+    
   }
  
 }
-cv.errors[is.na(cv.errors)] <- 0
+
 #MSE
 mean.cv.errors <- apply(cv.errors,2,mean)
 
-layout(matrix(c(1,1,1,1),1,1))
-plot(mean.cv.errors, type="b")
+oddvals <- seq(1, length(mean.cv.errors), by=2)
+
+plot(oddvals,mean.cv.errors[oddvals], type="b")
+
+#minimum errors
+filter <- mean.cv.errors[oddvals] %in% mean.cv.errors[which(mean.cv.errors[oddvals] <=(min(mean.cv.errors[oddvals])+sd(mean.cv.errors[oddvals])))]
 
 #minimum size within 1 standard error of minimum error (across a model using all 26 factors)
-bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))
 
-#kNNdistplot(dat[id.train, ], k=knn_model$k.opt)
+#knn_model <- knn.reg.bestK(MyData[reducedXList], test=NULL, MyData[reducedXList]$yFYield_CSUSHPINSA,k)
+
+yhat = knn.reg(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, j)
+  
+kbestSize = which(mean.cv.errors == mean.cv.errors[oddvals][filter])
+
+knn_model <- knn.reg(MyData[reducedXList], test=NULL, MyData$yFYield_CSUSHPINSA, kbestSize)
+
+layout(matrix(c(1,1,1,1),1,1))
+#fit <- Mclust(MyData[finalSet])
+#plot(fit) # plot results 
+#summary(fit)
+
+my_cols <- c("#00AFBB", "#E7B800", "#FC4E07")  
+pairs(iris[,1:4], pch = 19,  cex = 0.5,
+      col = my_cols[iris$Species],
+      lower.panel=NULL)
+
+kNNdist(MyData[finalSet], kbestSize)
+
+#kNNdistplot(MyData[finalSet], kbestSize)
 
