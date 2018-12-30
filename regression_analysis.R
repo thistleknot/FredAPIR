@@ -476,43 +476,87 @@ for (i in 1:divisions)
 
 which.min(mean.cv.errors)
 
-plot(mean.cv.errors, type='b')
+layout(matrix(c(1,1,1,1),1,1))
+plot(mean.cv.errors, type="b")
 
 #minimum size within 1 standard error of minimum error (across a model using all 26 factors)
-bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))
+bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))+2
 
-bestsubset = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=bestSize, method=c("exhaustive"))
+bestsubset = regsubsets(yFYield_CSUSHPINSA ~ ., data = MyData[xyList], nbest=1, nvmax=bestSize, method=c("exhaustive"))
 
 #https://rstudio-pubs-static.s3.amazonaws.com/2897_9220b21cfc0c43a396ff9abf122bb351.html
-layout(matrix(c(1,1,1,1),1,1))
-plot(mean.cv.errors, pch = length(factor_test_list), type = "b")
+
 plot(bestsubset, scale = "adjr2", main = "Adjusted R^2")
 
 finish = coef(bestsubset, bestSize)
 
-cv.errors=matrix(NA,divisions,,)
+finalSet <- c('yFYield_CSUSHPINSA',tail(row.names(data.frame(finish)),-1))
 
-for(j in 1:divisions){
-  #best.fit = regsubsets(yFYield_CSUSHPINSA ~., data=subset[folds != j,], nvmax = length(factor_test_list)-1)
-  knn_model <- knn.reg.bestK(subset[folds == j,], subset[folds != j,], subset[folds == j,]$yFYield_CSUSHPINSA, subset[folds != j,]$yFYield_CSUSHPINSA)
-  #predictions
-  #knn.reg(dat[id.train, ], test = dat[id.test, ], dat$yFYield_CSUSHPINSA[id.train], k = knn_model$opt)
-  #for (i in 1:(length(factor_test_list)-1)){
-    #pred = predict.regsubsets(best.fit, subset[folds == j, ], id = i)  
-    yhat = knn.reg(subset[folds == j,], subset[folds != j,], subset[folds == j,]$yFYield_CSUSHPINSA, knn_model$k.opt)
-    yhat.test = rep(0, length(id.test))
-    yhat.test[yhat$pred > 0] = 1
-    print(yhat.test)
-    #MSE
-    #cv.errors[j, i] = mean((subset$yFYield_CSUSHPINSA[folds == j] - pred)^2)
-    #cv.errors[j, i] = mean(yhat.test != dat2$BL_yFYield_CSUSHPINSA[id.test])
-    cv.errors[j] = mean(yhat.test != MyData[folds != j,]$BL_yFYield_CSUSHPINSA)
-  #}
+finalSet <- c('yFYield_CSUSHPINSA',xList)
+
+#don't include y
+k=length(finalSet)-1
+
+#goal of knn is to build it against it's own xlist
+
+#however, because  want to map my above regression model to knn using kdistplot, I need to actually use the variables above...
+
+cv.errors<-matrix(NA,divisions,k, dimnames=list(NULL, paste(1:k)))
+
+for(i in 1:divisions){
+  
+  final_end=length(preset_rng)
+  unitsize=floor(final_end*.1)
+  
+  initial_start=1+((i-1)*unitsize)
+  initial_start
+  
+  distance=final_end-initial_start
+  
+  #90%
+  part_size=floor(final_end*.9)
+  
+  difference=(distance-part_size)
+  
+  if (distance>=part_size)
+  {
+    end_position=initial_start+part_size
+    preset1=(c(preset_rng[initial_start:end_position]))
+  }
+  
+  if (distance<part_size)
+  {
+    end_position=final_end
+    left=part_size-(end_position-initial_start)
+    left
+    preset1=(c(preset_rng[initial_start:end_position],preset_rng[1:left]))
+  }
+  
+  preset2 = preset_rng[!preset_rng %in% c(preset1)]
+  
+  knn_model <- knn.reg.bestK(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, MyData[preset2,finalSet]$yFYield_CSUSHPINSA)
+  #up to k factors
+  for(j in 1:k){
+    #predictions
+    yhat = knn.reg(MyData[preset1,finalSet], MyData[preset2,finalSet], MyData[preset1,finalSet]$yFYield_CSUSHPINSA, j)
+    #yhat.test = rep(0, length(preset2))
+    #yhat.test[yhat$pred > 0] = 1
+    #yhat.test[yhat$pred < 0] = 0
+    print(yhat)
+    
+    cv.errors[i,j] <- mean((MyData[preset2,'yFYield_CSUSHPINSA'] - yhat$pred)^2)
+  }
+ 
 }
+cv.errors[is.na(cv.errors)] <- 0
+#MSE
+mean.cv.errors <- apply(cv.errors,2,mean)
+
+layout(matrix(c(1,1,1,1),1,1))
+plot(mean.cv.errors, type="b")
+
+#minimum size within 1 standard error of minimum error (across a model using all 26 factors)
+bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))
 
 #kNNdistplot(dat[id.train, ], k=knn_model$k.opt)
 
-print(finish)
-#plot(subsets)
-View(finish)
-write.csv(finish, "coefficients.csv")
