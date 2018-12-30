@@ -394,37 +394,98 @@ vars <- c()
 #subset <- dat[set1,][xyList]
 subset <- MyData[xyList]
 
-#weird method to bootstrap.  Assigns each value to a k-fold
-folds = sample(1:divisions,nrow(subset),replace=TRUE)
+#Bootstrap w resampling k-folds, assigns each value to a k-fold
+#folds = sample(1:divisions,nrow(subset),replace=TRUE)
+print(unique(factor_test_list))
 
-#https://rpubs.com/davoodastaraky/subset
-cv.errors=matrix(NA,divisions,(length(factor_test_list)-1), dimnames=list(NULL, paste(1:(length(factor_test_list)-1))))
+#same xylist to two different training partitions
+xyList=c('yFYield_CSUSHPINSA',c((unique(factor_test_list))))
 
-for(j in 1:divisions){
-  best.fit = regsubsets(yFYield_CSUSHPINSA ~., data=subset[folds != j,], nvmax = length(factor_test_list)-1)
-  for (i in 1:(length(factor_test_list)-1)){
-    pred = predict.regsubsets(best.fit, subset[folds == j, ], id = i)  
-    #MSE
-    cv.errors[j, i] = mean((subset$yFYield_CSUSHPINSA[folds == j] - pred)^2)
+#all data, factor_list
+t1 <- MyData[xyList]
+
+x= t1[!colnames(t1) %in% c('yFYield_CSUSHPINSA')]
+y= t1['yFYield_CSUSHPINSA']
+
+vars <- c()
+
+#divisions = folds
+# #factors (-1 due to response included in factor_test_list)
+k=length(factor_test_list)-1
+#k=13
+cv.errors=matrix(NA,divisions,k, dimnames=list(NULL, paste(1:k)))
+#reshuffle
+set.seed(256)
+preset_rng <- sample(nrow(MyData), replace=F)
+divisions=10
+for (i in 1:divisions)
+{
+  
+  #iterator constant (for testing)
+  #i = 1
+  #preset1 = train index
+  #preset2 = text index
+  
+  final_end=length(preset_rng)
+  unitsize=floor(final_end*.1)
+  
+  initial_start=1+((i-1)*unitsize)
+  initial_start
+  
+  distance=final_end-initial_start
+  
+  #90%
+  part_size=floor(final_end*.9)
+  
+  difference=(distance-part_size)
+  
+  if (distance>=part_size)
+  {
+    end_position=initial_start+part_size
+    preset1=(c(preset_rng[initial_start:end_position]))
   }
+  
+  if (distance<part_size)
+  {
+    end_position=final_end
+    left=part_size-(end_position-initial_start)
+    left
+    preset1=(c(preset_rng[initial_start:end_position],preset_rng[1:left]))
+  }
+  
+  preset2 = preset_rng[!preset_rng %in% c(preset1)]
+  
+  training1Model <- lm(yFYield_CSUSHPINSA~.,MyData[preset1,xyList])
+  summary(training1Model)
 
+  #https://rstudio-pubs-static.s3.amazonaws.com/117080_1924569ef91b426c8ea7bff8dcbaf4f3.html
+  
+    ## Training set
+    best.fit <- regsubsets(yFYield_CSUSHPINSA~.,data=MyData[xyList],nvmax=k)
+    #up to k factors
+    for(j in 1:k){
+      #predict on test set
+      pred <- predict.regsubsets(best.fit,MyData[preset2,xyList],id=j)
+      cv.errors[i,j] <- mean((MyData[preset2,colnames(y)] - pred)^2)
+    }
+  
+  mean.cv.errors <- apply(cv.errors,2,mean)
+  
+ #View(MyData[preset1,xyList]) 
 }
-#  colnames(x)
 
-which.min(cv.errors)  
-#View(cv.errors)
+which.min(mean.cv.errors)
 
-#https://rpubs.com/davoodastaraky/subset
-mean.cv.errors = apply(cv.errors ,2,mean)
+plot(mean.cv.errors, type='b')
 
-#find ideal size
-plot(mean.cv.errors, pch = length(factor_test_list), type = "b")
-
-bestSize = which(mean.cv.errors %in% min(mean.cv.errors))
+#minimum size within 1 standard error of minimum error (across a model using all 26 factors)
+bestSize = min(which(mean.cv.errors <= (min(mean.cv.errors)+sd(mean.cv.errors))))
 
 bestsubset = regsubsets(yFYield_CSUSHPINSA ~ ., data = subset, nbest=1, nvmax=bestSize, method=c("exhaustive"))
 
 #https://rstudio-pubs-static.s3.amazonaws.com/2897_9220b21cfc0c43a396ff9abf122bb351.html
+layout(matrix(c(1,1,1,1),1,1))
+plot(mean.cv.errors, pch = length(factor_test_list), type = "b")
 plot(bestsubset, scale = "adjr2", main = "Adjusted R^2")
 
 finish = coef(bestsubset, bestSize)
@@ -449,12 +510,7 @@ for(j in 1:divisions){
   #}
 }
 
-
-
-
-
 #kNNdistplot(dat[id.train, ], k=knn_model$k.opt)
-
 
 print(finish)
 #plot(subsets)
