@@ -510,10 +510,15 @@ min(MyData$yFYield_CSUSHPINSA)
 reducedXList <- tail(row.names(data.frame(finish)),-1)
 finalSet <- c('yFYield_CSUSHPINSA',reducedXList)
 
-scaled.dat <- scale(dat)
+dates <- MyData[c('test2_z.date')]
+scaled.dat <- scale(MyData[c('BL_yFYield_CSUSHPINSA',finalSet)])
+reduced <- MyData[c('BL_yFYield_CSUSHPINSA',finalSet)]
 
-write.csv(MyData[c('test2_z.date',finalSet)], file = "reduced.csv")
+distance <- data.frame(distance=sqrt(rowSums(scaled.dat[,3:ncol(scaled.dat)]^2)))
 
+#https://stackoverflow.com/questions/11106964/rename-the-columns-name-after-cbind-the-data
+#rename on cbind
+write.csv(cbind(dates,scaled=scaled.dat,unscaled=reduced,distance=distance), file = "reduced.csv")
 
 #kfinalSet <- c('yFYield_CSUSHPINSA',xList)
 
