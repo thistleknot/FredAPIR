@@ -512,7 +512,7 @@ finalSet <- c('yFYield_CSUSHPINSA',reducedXList)
 
 scaled.dat <- scale(dat)
 
-write.csv(MyData[reducedXList], file = "reduced.csv")
+write.csv(MyData[c('test2_z.date',reducedXList)], file = "reduced.csv")
 
 
 #kfinalSet <- c('yFYield_CSUSHPINSA',xList)
