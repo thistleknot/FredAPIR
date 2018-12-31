@@ -510,6 +510,11 @@ min(MyData$yFYield_CSUSHPINSA)
 reducedXList <- tail(row.names(data.frame(finish)),-1)
 finalSet <- c('yFYield_CSUSHPINSA',reducedXList)
 
+scaled.dat <- scale(dat)
+
+write.csv(MyData[reducedXList], file = "reduced.csv")
+
+
 #kfinalSet <- c('yFYield_CSUSHPINSA',xList)
 
 #goal of knn is to build it against it's own xlist
@@ -590,6 +595,10 @@ kbestSize = which(mean.cv.errors == mean.cv.errors[oddvals][filter])
 
 knn_model <- knn.reg(MyData[reducedXList], test=NULL, MyData$yFYield_CSUSHPINSA, kbestSize)
 
+summary(knn_model)
+
+#unique(round(knn_model$pred,2))
+
 layout(matrix(c(1,1,1,1),1,1))
 #fit <- Mclust(MyData[finalSet])
 #plot(fit) # plot results 
@@ -600,7 +609,20 @@ pairs(iris[,1:4], pch = 19,  cex = 0.5,
       col = my_cols[iris$Species],
       lower.panel=NULL)
 
+sum(kNNdist(MyData[finalSet], kbestSize))/kbestSize
+
 kNNdist(MyData[finalSet], kbestSize)
 
+kNNdistplot(MyData[finalSet], kbestSize)
+
+dataM <- as.matrix(MyData[finalSet])
+
+#kNNdist(iris, k=kbestSize, search="kd")
+cl <- dbscan(dataM, eps = .05, minPts = kbestSize)
+pairs(dataM, col = cl$cluster+1L)
+
+cl2 <- hdbscan(dataM, minPts = kbestSize)
+plot(cl2$hc, main="HDBSCAN* Hierarchy")
+plot(cl2)
 #kNNdistplot(MyData[finalSet], kbestSize)
 
