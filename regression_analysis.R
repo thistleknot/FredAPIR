@@ -5,6 +5,7 @@ library(DAAG)
 library(ISLR)
 library(knitr)
 library(printr)
+library(FNN)
 
 #filter
 library(dplyr)
@@ -475,7 +476,7 @@ for (i in 1:divisions)
       cv.errors[i,j] <- sqrt(mean((MyData[preset2,colnames(y)] - pred)^2))
     }
   
-  print()
+  #print()
   mean.cv.errors <- apply(cv.errors,2,mean)
   median.cv.errors <- apply(cv.errors,2,median)
   
@@ -515,9 +516,33 @@ scaled.dat <- scale(MyData[c('BL_yFYield_CSUSHPINSA',finalSet)])
 reduced <- MyData[c('BL_yFYield_CSUSHPINSA',finalSet)]
 
 distance <- data.frame(distance=sqrt(rowSums(scaled.dat[,3:ncol(scaled.dat)]^2)))
+distance1 <- sqrt(rowSums(scaled.dat[,3:ncol(scaled.dat)]^2))
+distance2 <- (rowSums(scaled.dat[,3:ncol(scaled.dat)]))
+distance3 <- (rowSums(reduced[,3:ncol(scaled.dat)]))
+
+layout(matrix(c(1,2,3,4),2,2)) # check the difference by removing this line
+
+#layout(matrix(c(1,2,3,4),1,2))
+#standard knn distance based on mean
+plot(distance1,MyData$yFYield_CSUSHPINSA)
+#scaled x, not y
+#plot(distance2,scale(MyData$yFYield_CSUSHPINSA))
+plot(distance2,MyData$yFYield_CSUSHPINSA)
+#unscaled
+plot(distance3,MyData$yFYield_CSUSHPINSA)
+
+distanceModel <- lm((MyData$yFYield_CSUSHPINSA)~distance2)
+summary(distanceModel)
+max(distanceModel$residuals)
+hist(distanceModel$residuals)
 
 #https://stackoverflow.com/questions/11106964/rename-the-columns-name-after-cbind-the-data
 #rename on cbind
+
+
+layout(matrix(c(1,2,3,4),1,2))
+boxplot(reduced)
+boxplot(scaled.dat)
 write.csv(cbind(dates,scaled=scaled.dat,unscaled=reduced,distance=distance), file = "reduced.csv")
 
 #kfinalSet <- c('yFYield_CSUSHPINSA',xList)
@@ -609,10 +634,18 @@ layout(matrix(c(1,1,1,1),1,1))
 #plot(fit) # plot results 
 #summary(fit)
 
-my_cols <- c("#00AFBB", "#E7B800", "#FC4E07")  
-pairs(iris[,1:4], pch = 19,  cex = 0.5,
-      col = my_cols[iris$Species],
+pairs(MyData[colnames(reduced)], pch = 19,lower.panel = NULL)
+
+my_cols <- c("#00AFBB", "#E7B800") 
+#my_cols <- c("#00AFBB", "#E7B800", "#FC4E07")  
+pairs(MyData[colnames(reduced)], pch = 2,  cex = 0.75,
+      col = my_cols[MyData$BL_yFYield_CSUSHPINSA],
       lower.panel=NULL)
+
+cols <- c("red","green","blue","orange")
+cols <- c("red","green")
+plot(MyData$xYield_CASTHPI~MyData$xYield_TB3MS, data = MyData[colnames(reduced)], col = cols[MyData$BL_yFYield_CSUSHPINSA], pch = 19)
+legend("topleft", legend = levels(MyData$BL_yFYield_CSUSHPINSA), col = cols, pch = 19, bty = "n")
 
 sum(kNNdist(MyData[finalSet], kbestSize))/kbestSize
 
