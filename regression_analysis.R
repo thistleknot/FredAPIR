@@ -26,6 +26,7 @@ library(leaps)
 library(car)
 library(ggvis)
 library(mclust)
+library(dbscan)
 
 
 #https://lagunita.stanford.edu/c4x/HumanitiesSciences/StatLearning/asset/ch6.html
@@ -501,7 +502,7 @@ plot(bestsubset, scale = "adjr2", main = "Adjusted R^2")
 
 finish = coef(bestsubset, bestSize)
 
-finishedModel <- lm(MyData[finalSet])
+
 summary(finishedModel)
 
 #max and min yield for housing is 5.4%
@@ -510,6 +511,8 @@ min(MyData$yFYield_CSUSHPINSA)
 
 reducedXList <- tail(row.names(data.frame(finish)),-1)
 finalSet <- c('yFYield_CSUSHPINSA',reducedXList)
+
+finishedModel <- lm(MyData[finalSet])
 
 dates <- MyData[c('test2_z.date')]
 scaled.dat <- scale(MyData[c('BL_yFYield_CSUSHPINSA',finalSet)])
@@ -639,13 +642,13 @@ pairs(MyData[colnames(reduced)], pch = 19,lower.panel = NULL)
 my_cols <- c("#00AFBB", "#E7B800") 
 #my_cols <- c("#00AFBB", "#E7B800", "#FC4E07")  
 pairs(MyData[colnames(reduced)], pch = 2,  cex = 0.75,
-      col = my_cols[MyData$BL_yFYield_CSUSHPINSA],
+      col = my_cols[MyData$BL_yFYield_CSUSHPINSA+1],
       lower.panel=NULL)
 
-cols <- c("red","green","blue","orange")
-cols <- c("red","green")
-plot(MyData$xYield_CASTHPI~MyData$xYield_TB3MS, data = MyData[colnames(reduced)], col = cols[MyData$BL_yFYield_CSUSHPINSA], pch = 19)
-legend("topleft", legend = levels(MyData$BL_yFYield_CSUSHPINSA), col = cols, pch = 19, bty = "n")
+#cols <- c("red","green","blue","orange")
+#cols <- c("red","green")
+#plot(MyData$xYield_CASTHPI~MyData$xYield_TB3MS, data = MyData[colnames(reduced)], col = cols[MyData$BL_yFYield_CSUSHPINSA], pch = 19)
+#legend("topleft", legend = levels(MyData$BL_yFYield_CSUSHPINSA), col = cols, pch = 19, bty = "n")
 
 sum(kNNdist(MyData[finalSet], kbestSize))/kbestSize
 
