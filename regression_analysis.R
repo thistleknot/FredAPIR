@@ -524,8 +524,11 @@ distance2 <- (rowSums(scaled.dat[,3:ncol(scaled.dat)]))
 #sum of yields
 distance3 <- (rowSums(reduced[,3:ncol(scaled.dat)]))
 
+distance4 <- (rowSums(apply(scaled.dat[,3:ncol(scaled.dat)], 2, function(x) pnorm(x)))/ncol(scaled.dat[,3:ncol(scaled.dat)]))-.5
 
-distance4 <- apply(scaled.dat[,3:ncol(scaled.dat)], 2, function(x) pnorm(x))
+
+yNormed <- (pnorm(scale(MyData$yFYield_CSUSHPINSA))-.5)
+
 
 #average of cdf's
 
@@ -643,6 +646,8 @@ layout(matrix(c(1,1,1,1),1,1))
 #plot(fit) # plot results 
 #summary(fit)
 
+layout(matrix(c(1,1,1,1),1,1))
+
 pairs(MyData[colnames(reduced)], pch = 19,lower.panel = NULL)
 
 my_cols <- c("#00AFBB", "#E7B800") 
@@ -651,10 +656,16 @@ pairs(MyData[colnames(reduced)], pch = 2,  cex = 0.75,
       col = my_cols[MyData$BL_yFYield_CSUSHPINSA+1],
       lower.panel=NULL)
 
-pairs(cbind(distance2,MyData$yFYield_CSUSHPINSA), pch = 2,  cex = 0.75,
+pairs(cbind(yNormed,distance4), pch = 2,  cex = 0.75,
       col = my_cols[MyData$BL_yFYield_CSUSHPINSA+1],
       lower.panel=NULL)
 
+
+#https://stackoverflow.com/questions/7333203/linear-regression-with-a-known-fixed-intercept-in-r
+plot (distance4, yNormed)
+dist4Model <-lm(yNormed~0 +distance4,offset=rep(0,length(yNormed)))
+abline(dist4Model,col="blue")
+summary(dist4Model)
 
 #cols <- c("red","green","blue","orange")
 #cols <- c("red","green")
